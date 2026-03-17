@@ -12,7 +12,6 @@ import Organization from './components/Organization';
 import Announcements from './components/Announcements';
 import ContentCalendar from './components/ContentCalendar';
 import PayrollManager from './components/PayrollManager';
-import DailySummary from './components/DailySummary';
 import AdminConsole from './components/AdminConsole';
 import PermissionManager from './components/PermissionManager';
 import TeamStatusCard from './components/TeamStatusCard';
@@ -174,7 +173,7 @@ const App: React.FC = () => {
   const [leaves, setLeaves] = useState<LeaveRecord[]>(boot.leaves);
   const [settings, setSettings] = useState<SystemSettings>(boot.settings);
   const [lang, setLang] = useState<Language>(boot.lang);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leave' | 'profile' | 'organization' | 'announcements' | 'admin' | 'summary' | 'calendar' | 'mkt' | 'payroll' | 'permissions' | 'teams'>(boot.tab);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leave' | 'profile' | 'organization' | 'announcements' | 'admin' | 'calendar' | 'mkt' | 'payroll' | 'permissions' | 'teams'>(boot.tab);
 
   const [isClockedIn, setIsClockedIn] = useState(() => records.length > 0 && records[0].type === AttendanceType.CHECK_IN);
   const [showScanner, setShowScanner] = useState(false);
@@ -614,9 +613,6 @@ const App: React.FC = () => {
             )}
             {activeTab === 'history' && <History records={records} lang={lang} settings={settings} allRecordsMap={currentUser.role === UserRole.ADMIN ? allRecordsMap : undefined} members={currentUser.role === UserRole.ADMIN ? allUsers : undefined} currentUserRole={currentUser.role} currentUser={currentUser} />}
             {activeTab === 'leave' && <LeaveManager leaves={leaves.filter(l => l.employeeId === currentUser.employeeId)} onRequest={(l: any) => setLeaves(p => [{ ...l, id: Date.now().toString(), status: LeaveStatus.PENDING, employeeName: currentUser.name, employeeId: currentUser.employeeId }, ...p])} user={currentUser} lang={lang} />}
-            {activeTab === 'summary' && currentUser.role === UserRole.ADMIN && (
-              <DailySummary records={dailySummaries} members={allUsers} onAdd={handleAddSummary} onDelete={handleDeleteSummary} lang={lang} />
-            )}
             {activeTab === 'profile' && <Profile user={currentUser} records={records} leaves={leaves} lang={lang} onResetFaceID={() => {
               const u = { ...currentUser, storedFace: undefined, faceSignature: undefined };
               setCurrentUser(u);

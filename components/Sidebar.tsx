@@ -4,8 +4,8 @@ import { UserProfile, UserRole, Language, RolePermissions } from '../types';
 import { filterMenuByPermissions } from '../utils/permissions';
 
 interface SidebarProps {
-  activeTab: 'dashboard' | 'history' | 'leave' | 'profile' | 'organization' | 'announcements' | 'admin' | 'summary' | 'calendar' | 'mkt' | 'payroll' | 'permissions' | 'teams';
-  setActiveTab: (tab: 'dashboard' | 'history' | 'leave' | 'profile' | 'organization' | 'announcements' | 'admin' | 'summary' | 'calendar' | 'mkt' | 'payroll' | 'permissions' | 'teams') => void;
+  activeTab: 'dashboard' | 'history' | 'leave' | 'profile' | 'organization' | 'announcements' | 'admin' | 'calendar' | 'mkt' | 'payroll' | 'permissions' | 'teams';
+  setActiveTab: (tab: 'dashboard' | 'history' | 'leave' | 'profile' | 'organization' | 'announcements' | 'admin' | 'calendar' | 'mkt' | 'payroll' | 'permissions' | 'teams') => void;
   user: UserProfile;
   lang: Language;
   rolePermissions?: RolePermissions;
@@ -134,19 +134,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, lang, 
               </button>
 
               <button
-                onClick={() => setActiveTab('summary')}
-                className={`w-full flex items-center space-x-4 px-5 py-4 rounded-[1.5rem] font-black transition-all duration-300 group ${activeTab === 'summary'
-                  ? 'bg-purple-600 text-white shadow-2xl shadow-purple-600/20 scale-105'
-                  : 'text-purple-400 hover:bg-purple-50'
-                  }`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span className="text-xs uppercase tracking-widest">{lang === Language.TH ? 'คลังข้อมูลสรุป' : 'Summary Repo'}</span>
-              </button>
-
-              <button
                 onClick={() => setActiveTab('payroll')}
                 className={`w-full flex items-center space-x-4 px-5 py-4 rounded-[1.5rem] font-black transition-all duration-300 group ${activeTab === 'payroll'
                   ? 'bg-emerald-600 text-white shadow-2xl shadow-emerald-600/20 scale-105'
@@ -193,13 +180,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, lang, 
                 id: 'admin', label: 'Admin Hub', icon: (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                )
-              },
-              {
-                id: 'summary', label: 'Summary', icon: (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 )
               },
