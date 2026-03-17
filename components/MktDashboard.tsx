@@ -72,10 +72,34 @@ const recalc = (row: RowData): RowData => {
 const fmt = (n: number) => n.toLocaleString('th-TH');
 const fmtPct = (n: number) => `${n.toFixed(2)}%`;
 
+interface WithdrawItem {
+  name: string;
+  withdraw: number;
+  transferred: number;
+  pending: number;
+}
+
+interface WithdrawData {
+  date: string;
+  data: WithdrawItem[];
+}
+
 const MktDashboard: React.FC = () => {
   const [data, setData] = useState<MktData>(initData);
   const [activeTab, setActiveTab] = useState<TabKey>('TG');
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [withdrawData, setWithdrawData] = useState<WithdrawData | null>(null);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetch('http://76.13.190.65/work/api/withdraw', { signal: ctrl.signal })
+      .then(r => r.json())
+      .then(json => {
+        if (json.ok && json.data) setWithdrawData({ date: json.date, data: json.data });
+      })
+      .catch(() => { /* hide on error */ });
+    return () => ctrl.abort();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -120,6 +144,46 @@ const MktDashboard: React.FC = () => {
           className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
         />
       </div>
+
+      {/* Withdraw Section */}
+      {withdrawData && withdrawData.data.length > 0 && (
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] border border-slate-100 shadow-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest">💸 ยอดเบิก/โอนวันนี้</h3>
+            <span className="text-[10px] font-bold text-slate-400">{withdrawData.date}</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {withdrawData.data.map(item => (
+              <div key={item.name} className="rounded-2xl border border-slate-100 bg-white/60 backdrop-blur-sm p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-lg shadow-blue-500/20">
+                    {item.name[0]}
+                  </div>
+                  <span className="font-black text-slate-800 text-sm">{item.name}</span>
+                </div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400 font-bold">เบิก</span>
+                    <span className="font-black text-slate-700">{fmt(item.withdraw)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400 font-bold">โอนแล้ว</span>
+                    <span className="font-black text-emerald-600">{fmt(item.transferred)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold">สถานะ</span>
+                    {item.pending <= 0 ? (
+                      <span className="font-black text-emerald-600 text-xs">✅ ครบ</span>
+                    ) : (
+                      <span className="font-black text-amber-500 text-xs">⏳ ค้าง {fmt(item.pending)} บาท</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tab Selector */}
       <div className="flex gap-2">
