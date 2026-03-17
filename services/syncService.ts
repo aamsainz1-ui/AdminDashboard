@@ -458,6 +458,10 @@ export const syncSettings = async (localSettings: SystemSettings): Promise<Syste
                 office_locations: localSettings.officeLocations,
                 available_roles: localSettings.availableRoles,
                 work_start_times: localSettings.workStartTimes,
+                role_permissions: localSettings.rolePermissions || {},
+                teams: localSettings.teams || [],
+                enable_geofencing: localSettings.enableGeofencing !== undefined ? localSettings.enableGeofencing : true,
+                mkt_view_permissions: localSettings.mktViewPermissions || {},
                 updated_at: new Date().toISOString()
             }, { onConflict: 'id' });
 
@@ -477,7 +481,10 @@ export const syncSettings = async (localSettings: SystemSettings): Promise<Syste
                 officeLocations: data.office_locations || [],
                 availableRoles: data.available_roles || [],
                 workStartTimes: data.work_start_times || ['09:00'],
-                rolePermissions: data.role_permissions || {}
+                rolePermissions: data.role_permissions || {},
+                teams: data.teams || [],
+                enableGeofencing: data.enable_geofencing !== undefined ? data.enable_geofencing : true,
+                mktViewPermissions: data.mkt_view_permissions || {}
             };
         }
 
