@@ -299,7 +299,7 @@ const App: React.FC = () => {
     }
 
     // Geofencing Check
-    if (workMode !== WorkMode.REMOTE && settings.officeLocations.length > 0) {
+    if (workMode !== WorkMode.REMOTE && settings.officeLocations.length > 0 && settings.enableGeofencing !== false) {
       let closestDistance = Infinity;
       let closestLocation = '';
 

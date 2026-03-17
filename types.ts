@@ -139,6 +139,7 @@ export interface SystemSettings {
   availableRoles: string[]; // Dynamic roles manageable by owner
   rolePermissions?: RolePermissions; // Permission matrix for role-based access control
   teams: Team[]; // Teams in the organization
+  enableGeofencing?: boolean; // Toggle geofencing on/off
 }
 
 export interface DailySummaryRecord {

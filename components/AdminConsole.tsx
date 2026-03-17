@@ -352,6 +352,19 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
                   + {t.addLocation}
                 </button>
               </div>
+              {/* Toggle Geofencing */}
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
+                <div>
+                  <p className="text-sm font-black text-slate-900">{lang === 'TH' ? '📍 เปิดใช้ตรวจสอบตำแหน่ง' : '📍 Enable Geofencing'}</p>
+                  <p className="text-[10px] font-bold text-slate-400">{lang === 'TH' ? 'บังคับให้เช็คอินในพื้นที่ที่กำหนด' : 'Require check-in within office area'}</p>
+                </div>
+                <button
+                  onClick={() => onUpdateSettings({ ...settings, enableGeofencing: !(settings.enableGeofencing !== false) })}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${settings.enableGeofencing !== false ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${settings.enableGeofencing !== false ? 'left-7' : 'left-1'}`} />
+                </button>
+              </div>
               <div className="space-y-3">
                 {(settings.officeLocations || []).map(loc => (
                   <div key={loc.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group">
