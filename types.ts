@@ -140,6 +140,7 @@ export interface SystemSettings {
   rolePermissions?: RolePermissions; // Permission matrix for role-based access control
   teams: Team[]; // Teams in the organization
   enableGeofencing?: boolean; // Toggle geofencing on/off
+  mktViewPermissions?: Record<string, string>; // userId → staff name to show in MKT
 }
 
 export interface DailySummaryRecord {

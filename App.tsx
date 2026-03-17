@@ -582,7 +582,7 @@ const App: React.FC = () => {
             />}
             {activeTab === 'announcements' && <Announcements announcements={announcements} lang={lang} isAdmin={currentUser.role === UserRole.ADMIN} onAdd={handleAddAnnouncement} onDelete={handleDeleteAnnouncement} />}
             {activeTab === 'calendar' && <ContentCalendar plans={contentPlans} onAdd={handleAddContentPlan} onDelete={handleDeleteContentPlan} lang={lang} />}
-            {activeTab === 'mkt' && <MktDashboard isAdmin={currentUser.role === UserRole.ADMIN} defaultStaff={currentUser.role !== UserRole.ADMIN ? currentUser.name : undefined} />}
+            {activeTab === 'mkt' && <MktDashboard isAdmin={currentUser.role === UserRole.ADMIN} defaultStaff={currentUser.role !== UserRole.ADMIN ? (settings.mktViewPermissions?.[currentUser.id] || currentUser.name) : undefined} />}
             {activeTab === 'payroll' && currentUser.role === UserRole.ADMIN && <PayrollManager members={teamMembers} payroll={payrollRecords} compensation={compensationSettings} onUpdateCompensation={handleUpdateCompensation} onProcessPayroll={handleProcessPayroll} lang={lang} />}
             {activeTab === 'admin' && <AdminConsole leaves={leaves} onApprove={handleLeaveApproval} members={teamMembers} lang={lang} settings={settings} onUpdateSettings={setSettings} onCreateMember={handleCreateMember} onUpdateMember={handleUpdateMember} allRecordsMap={allRecordsMap} announcements={announcements} onAddAnnouncement={handleAddAnnouncement} onDeleteAnnouncement={handleDeleteAnnouncement} />}
             {activeTab === 'teams' && currentUser.role === UserRole.ADMIN && (

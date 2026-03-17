@@ -557,6 +557,31 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
         </div>
       </div>
 
+      {/* MKT View Permission Section */}
+      {members.length > 0 && (
+        <div className="space-y-4 pt-6 border-t border-slate-50 mt-6">
+          <h4 className="text-lg font-black text-slate-900">👁️ {lang === Language.TH ? 'สิทธิ์ดูข้อมูล MKT' : 'MKT View Permission'}</h4>
+          <p className="text-xs text-slate-400 font-bold">{lang === Language.TH ? 'กำหนดว่าพนักงานแต่ละคนเห็นข้อมูลของใครใน MKT Dashboard' : 'Set which staff data each employee can view in MKT Dashboard'}</p>
+          <div className="space-y-3">
+            {members.filter(m => m.role !== 'ADMIN' && m.role !== 'OWNER').map(m => (
+              <div key={m.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-sm font-black text-slate-900">{m.name}</p>
+                <select
+                  value={(settings.mktViewPermissions || {})[m.id] || ''}
+                  onChange={e => onUpdateSettings({ ...settings, mktViewPermissions: { ...(settings.mktViewPermissions || {}), [m.id]: e.target.value } })}
+                  className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700"
+                >
+                  <option value="">ตัวเอง</option>
+                  {['เก่ง', 'แบงค์', 'ลัน', 'เม่า'].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {showAddLocation && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-center justify-center p-6">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md p-10 animate-in zoom-in-95 duration-200">
