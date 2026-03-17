@@ -361,6 +361,16 @@ const MktDashboard: React.FC = () => {
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
+          <select
+            value={staffFilter}
+            onChange={e => setStaffFilter(e.target.value)}
+            className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          >
+            <option value="all">👥 ทั้งหมด</option>
+            {STAFF.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
           <input
             type="date"
             value={selectedDate}
