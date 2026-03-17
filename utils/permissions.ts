@@ -52,7 +52,7 @@ export const getDefaultPermissions = (role: string): PermissionKey[] => {
         return ['dashboard', 'history', 'insights', 'profile', 'leave', 'organization', 'announcements', 'content', 'payroll', 'summary'];
     }
 
-    // EMPLOYEE มีสิทธิ์พื้นฐาน
-    return ['dashboard', 'history', 'profile', 'leave', 'announcements'];
+    // EMPLOYEE มีสิทธิ์พื้นฐาน + mkt
+    return ['dashboard', 'history', 'profile', 'leave', 'announcements', 'mkt'];
 };
 
