@@ -257,16 +257,23 @@ const MktDashboard: React.FC = () => {
     });
   }, [selectedDate]);
 
-  // Fetch withdraw data
+  // Fetch withdraw data from Supabase
   useEffect(() => {
-    const ctrl = new AbortController();
-    fetch('http://76.13.190.65/work/api/withdraw', { signal: ctrl.signal })
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const todayStr = `${dd}/${mm}/${yyyy}`;
+    fetch(`${SUPABASE_URL}/rest/v1/withdraw_log?date=eq.${todayStr}&select=name,amount,transferred,pending`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    })
       .then(r => r.json())
-      .then(json => {
-        if (json.ok && json.data) setWithdrawData({ date: json.date, data: json.data });
+      .then((rows: any[]) => {
+        if (Array.isArray(rows) && rows.length > 0) {
+          setWithdrawData({ date: todayStr, data: rows.map(r => ({ name: r.name, withdraw: r.amount, transferred: r.transferred || 0, pending: r.pending || r.amount })) });
+        }
       })
       .catch(() => { /* ignore */ });
-    return () => ctrl.abort();
   }, []);
 
   const handleChange = useCallback((staff: string, key: string, value: string) => {
