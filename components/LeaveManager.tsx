@@ -163,16 +163,17 @@ const LeaveManager: React.FC<LeaveManagerProps> = ({ leaves, onRequest, user, la
             <table className="w-full text-left min-w-[500px]">
               <thead>
                 <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  <th className="px-8 py-5">{lang === Language.TH ? 'ประเภทการลา' : 'Type'}</th>
-                  <th className="px-8 py-5">{lang === Language.TH ? 'ช่วงวันที่ขอลา' : 'Period'}</th>
-                  <th className="px-8 py-5">{lang === Language.TH ? 'สถานะ' : 'Status'}</th>
-                  <th className="px-8 py-5 text-right">{lang === Language.TH ? 'ยื่นเมื่อวันที่' : 'Requested On'}</th>
+                  <th className="px-6 py-5">{lang === Language.TH ? 'ประเภท' : 'Type'}</th>
+                  <th className="px-6 py-5">{lang === Language.TH ? 'ช่วงวันที่' : 'Period'}</th>
+                  <th className="px-6 py-5">{lang === Language.TH ? 'สถานะ' : 'Status'}</th>
+                  <th className="px-6 py-5">{lang === Language.TH ? 'วันที่ยื่น' : 'Requested'}</th>
+                  <th className="px-6 py-5 text-right">{lang === Language.TH ? 'วันที่อนุมัติ' : 'Approved'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {leaves.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-medium italic">
+                    <td colSpan={5} className="px-8 py-20 text-center text-slate-400 font-medium italic">
                       {lang === Language.TH ? 'ไม่พบข้อมูลการลาในระบบ' : 'No leave records found'}
                     </td>
                   </tr>
@@ -193,9 +194,20 @@ const LeaveManager: React.FC<LeaveManagerProps> = ({ leaves, onRequest, user, la
                         {statusLabels[leave.status]}
                       </span>
                     </td>
-                    <td className="px-8 py-6 text-right">
+                    <td className="px-6 py-6">
                       <span className="text-[10px] font-mono font-bold text-slate-400">
-                        {new Date(leave.requestedAt).toLocaleDateString(lang === Language.TH ? 'th-TH' : 'en-US')}
+                        {(leave as any).createdAt 
+                          ? new Date((leave as any).createdAt).toLocaleDateString(lang === Language.TH ? 'th-TH' : 'en-US', { day: '2-digit', month: 'short' }) + ' ' + new Date((leave as any).createdAt).toLocaleTimeString(lang === Language.TH ? 'th-TH' : 'en-US', { hour: '2-digit', minute: '2-digit' })
+                          : '-'
+                        }
+                      </span>
+                    </td>
+                    <td className="px-6 py-6 text-right">
+                      <span className={`text-[10px] font-mono font-bold ${(leave as any).approvedAt ? 'text-emerald-600' : 'text-slate-400'}`}>
+                        {(leave as any).approvedAt 
+                          ? new Date((leave as any).approvedAt).toLocaleDateString(lang === Language.TH ? 'th-TH' : 'en-US', { day: '2-digit', month: 'short' }) + ' ' + new Date((leave as any).approvedAt).toLocaleTimeString(lang === Language.TH ? 'th-TH' : 'en-US', { hour: '2-digit', minute: '2-digit' })
+                          : leave.status === LeaveStatus.PENDING ? (lang === Language.TH ? 'รอดำเนินการ' : 'Pending') : '-'
+                        }
                       </span>
                     </td>
                   </tr>

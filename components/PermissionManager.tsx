@@ -8,23 +8,17 @@ interface PermissionManagerProps {
     onPermissionsChange: (permissions: RolePermissions) => void;
 }
 
-// รายการฟังก์ชันทั้งหมดในระบบ
+// รายการฟังก์ชันสำหรับ Admin Dashboard เท่านั้น
 const ALL_PERMISSIONS: Permission[] = [
-    { key: 'dashboard', label: 'Dashboard', labelTH: 'แดชบอร์ด', icon: '📊' },
-    { key: 'history', label: 'Attendance History', labelTH: 'ประวัติการลงเวลา', icon: '📅' },
-    { key: 'insights', label: 'AI Insights', labelTH: 'วิเคราะห์ AI', icon: '🤖' },
-    { key: 'profile', label: 'Profile', labelTH: 'โปรไฟล์', icon: '👤' },
-    { key: 'leave', label: 'Leave Management', labelTH: 'จัดการวันลา', icon: '🏖️' },
-    { key: 'organization', label: 'Team Directory', labelTH: 'รายชื่อทีม', icon: '👥' },
-    { key: 'announcements', label: 'Announcements', labelTH: 'ประกาศ', icon: '📢' },
-    { key: 'content', label: 'Content Calendar', labelTH: 'ปฏิทินคอนเทนต์', icon: '📆' },
     { key: 'payroll', label: 'Payroll System', labelTH: 'ระบบเงินเดือน', icon: '💰' },
-    { key: 'summary', label: 'Daily Summary', labelTH: 'สรุปรายวัน', icon: '📝' },
-    { key: 'admin', label: 'Admin Console', labelTH: 'ตั้งค่าระบบ', icon: '⚙️' },
-    { key: 'mkt', label: 'MKT Dashboard', labelTH: 'แดชบอร์ด MKT', icon: '📈' },
-    { key: 'calendar', label: 'Marketing Calendar', labelTH: 'ปฏิทินการตลาด', icon: '📅' },
+    { key: 'announcements', label: 'Announcements', labelTH: 'ประกาศ', icon: '📢' },
+    { key: 'organization', label: 'Employee Management', labelTH: 'จัดการพนักงาน', icon: '👥' },
+    { key: 'leave', label: 'Leave Management', labelTH: 'จัดการวันลา', icon: '🏖️' },
+    { key: 'history', label: 'Leave History', labelTH: 'ประวัติการลา', icon: '📅' },
     { key: 'permissions', label: 'Permissions', labelTH: 'จัดการสิทธิ์', icon: '🔐' },
-    { key: 'teams', label: 'Team Management', labelTH: 'จัดการทีม', icon: '👨‍👩‍👧' },
+    { key: 'admin', label: 'System Settings', labelTH: 'ตั้งค่าระบบ', icon: '⚙️' },
+    { key: 'penalty', label: 'Penalty Report', labelTH: 'รายงานข้อผิดพลาด/ค่าปรับ', icon: '⚠️' },
+    { key: 'chat', label: 'Chat', labelTH: 'แชท', icon: '💬' },
 ];
 
 const PermissionManager: React.FC<PermissionManagerProps> = ({

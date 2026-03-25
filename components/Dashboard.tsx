@@ -83,7 +83,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isClockedIn, onAction, lastRecord
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="bg-white rounded-[4rem] p-10 sm:p-16 shadow-[0_32px_80px_rgba(0,0,0,0.03)] border border-slate-100 flex flex-col items-center text-center relative overflow-hidden group">
+      <div className="bg-white rounded-[2rem] sm:rounded-[4rem] p-6 sm:p-10 lg:p-16 shadow-[0_32px_80px_rgba(0,0,0,0.03)] border border-slate-100 flex flex-col items-center text-center relative overflow-hidden group">
         <div className="absolute top-0 left-0 w-full h-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500"></div>
         
         <div className="mb-10 flex flex-col items-center">
@@ -92,9 +92,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isClockedIn, onAction, lastRecord
           }`}>
             {isClockedIn ? t.working : t.ready}
           </div>
-          <h2 className="text-7xl sm:text-9xl font-black text-slate-900 tabular-nums tracking-tighter leading-none group-hover:scale-105 transition-transform duration-700">
+          <h2 className="text-5xl sm:text-7xl lg:text-9xl font-black text-slate-900 tabular-nums tracking-tighter leading-none group-hover:scale-105 transition-transform duration-700">
             {time.toLocaleTimeString(lang === Language.TH ? 'th-TH' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-            <span className="text-3xl sm:text-4xl text-slate-200 ml-2">{time.toLocaleTimeString(lang === Language.TH ? 'th-TH' : 'en-US', { second: '2-digit', hour12: false })}</span>
+            <span className="text-2xl sm:text-3xl lg:text-4xl text-slate-200 ml-2">{time.toLocaleTimeString(lang === Language.TH ? 'th-TH' : 'en-US', { second: '2-digit', hour12: false })}</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-6 font-black uppercase tracking-[0.4em]">
             {time.toLocaleDateString(lang === Language.TH ? 'th-TH' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -102,9 +102,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isClockedIn, onAction, lastRecord
         </div>
 
         {isClockedIn && (
-          <div className="mb-12 bg-slate-900 px-14 py-8 rounded-[3rem] shadow-2xl shadow-slate-900/30 animate-in zoom-in-95 duration-500">
+          <div className="mb-8 sm:mb-12 bg-slate-900 px-8 sm:px-14 py-6 sm:py-8 rounded-[2rem] sm:rounded-[3rem] shadow-2xl shadow-slate-900/30 animate-in zoom-in-95 duration-500">
             <p className="text-[10px] text-blue-400 font-black uppercase tracking-[0.4em] mb-3">{t.todayDuration}</p>
-            <p className="text-4xl sm:text-5xl font-mono font-black text-white tracking-[0.2em]">{shiftDuration}</p>
+            <p className="text-3xl sm:text-4xl lg:text-5xl font-mono font-black text-white tracking-[0.2em]">{shiftDuration}</p>
           </div>
         )}
 
@@ -161,9 +161,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isClockedIn, onAction, lastRecord
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-[3rem] p-10 shadow-sm border border-slate-100">
-          <div className="flex justify-between items-start mb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+        <div className="lg:col-span-2 bg-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-sm border border-slate-100">
+          <div className="flex justify-between items-start mb-6 sm:mb-12">
             <div>
               <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t.weekSummary}</h3>
               <div className="flex items-center space-x-2 mt-2">
@@ -172,11 +172,11 @@ const Dashboard: React.FC<DashboardProps> = ({ isClockedIn, onAction, lastRecord
               </div>
             </div>
             <div className="text-right">
-              <p className="text-6xl font-black text-blue-600 tracking-tighter">{weeklyStats.total}</p>
+              <p className="text-4xl sm:text-6xl font-black text-blue-600 tracking-tighter">{weeklyStats.total}</p>
               <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{t.totalHours}</p>
             </div>
           </div>
-          <div className="grid grid-cols-7 gap-5 h-48 items-end px-4">
+          <div className="grid grid-cols-7 gap-2 sm:gap-5 h-32 sm:h-48 items-end px-1 sm:px-4">
             {weeklyStats.days.map((day, i) => {
               const height = Math.min(100, (day.hours / 10) * 100);
               return (
@@ -202,7 +202,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isClockedIn, onAction, lastRecord
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[3rem] p-10 text-white flex flex-col justify-between shadow-2xl shadow-slate-900/40 relative overflow-hidden group">
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 text-white flex flex-col justify-between shadow-2xl shadow-slate-900/40 relative overflow-hidden group">
           <div className="relative z-10">
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400/80 mb-2">{t.balanceScore}</h4>
             <div className="flex items-end space-x-2 mb-8">

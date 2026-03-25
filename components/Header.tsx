@@ -26,8 +26,8 @@ const Header: React.FC<HeaderProps> = ({ user, onToggleRole, lang, onToggleLang 
 
         <div className="hidden lg:flex items-center space-x-6">
           <div>
-            <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">{lang === Language.TH ? 'พอร์ทัลพนักงาน' : 'Employee Portal'}</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Global Enterprise Network</p>
+            <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.25em]">{lang === Language.TH ? 'แอดมิน แดชบอร์ด' : 'Admin Dashboard'}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Administration Console</p>
           </div>
           {isAdmin && (
             <span className="bg-slate-900 text-white text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-xl">
@@ -52,7 +52,7 @@ const Header: React.FC<HeaderProps> = ({ user, onToggleRole, lang, onToggleLang 
             onClick={onToggleRole}
             className="flex items-center space-x-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-slate-900 text-white rounded-xl sm:rounded-2xl transition-all shadow-lg shadow-slate-900/10 active:scale-95 text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
           >
-            {lang === Language.TH ? 'สลับบัญชี' : 'Switch Account'}
+            {lang === Language.TH ? 'ออกจากระบบ' : 'Logout'}
           </button>
 
           <div className="flex items-center space-x-4">

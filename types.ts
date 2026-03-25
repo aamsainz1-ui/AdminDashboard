@@ -174,16 +174,30 @@ export interface ContentPlan {
   imageUrl?: string;
 }
 
+export interface PenaltyRecord {
+  id: string;
+  employeeId: string;
+  date: string; // YYYY-MM-DD
+  amount: number;
+  reason: string; // สาเหตุที่หัก
+}
+
 export interface PayrollRecord {
   id: string;
   employeeId: string;
   month: string; // YYYY-MM
   baseSalary: number;
-  commission: number;
-  bonus: number;
-  deductions: number;
+  mealAllowance: number; // ค่าข้าว
+  commission: number; // ค่าคอม
+  bonus: number; // โบนัส
+  overtime: number; // OT
+  damageCost: number; // ยอดเสียหาย
+  mistakePenalty: number; // ทำงานผิดพลาด
+  debtRepayment: number; // หักหนี้
+  remainingDebt: number; // หนี้คงเหลือ
+  deductions: number; // หักรวม (คำนวณอัตโนมัติ)
   netPayable: number;
-  status: 'PLEDGED' | 'PAID';
+  status: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'PAID';
   paymentDate?: string;
   notes?: string;
 }
@@ -208,9 +222,11 @@ export type PermissionKey =
   | 'content'
   | 'calendar'
   | 'payroll'
-  | 'summary'
   | 'admin'
   | 'mkt'
+  | 'mkt_edit'
+  | 'chat'
+  | 'chat_dm'
   | 'permissions'
   | 'teams';
 

@@ -16,14 +16,16 @@ export const syncUsers = async (localUsers: UserProfile[]): Promise<UserProfile[
         if (fetchError) throw fetchError;
 
         const cloudUserIds = new Set((cloudUsers || []).map((u: any) => u.id));
+        const cloudUserNames = new Set((cloudUsers || []).map((u: any) => u.name));
 
-        // STEP 2: Upload only NEW local users (not in cloud) or UPDATE existing ones
+        // STEP 2: Upload only truly NEW local users (not in cloud by ID AND name)
+        // If a user was deleted from cloud, do NOT re-upload them
         for (const user of localUsers) {
-            // Skip if user was deleted from cloud (not in cloudUserIds)
-            // Only upsert if user exists in cloud OR is a brand new user
             const isNewUser = !cloudUserIds.has(user.id);
+            const nameExistsInCloud = cloudUserNames.has(user.name);
 
-            if (isNewUser && user.name) {
+            // Skip if name already exists in cloud (prevents duplicate re-upload)
+            if (isNewUser && user.name && !nameExistsInCloud) {
                 const { error } = await supabase
                     .from('users')
                     .upsert({
@@ -309,7 +311,13 @@ export const syncPayroll = async (localRecords: PayrollRecord[]): Promise<Payrol
                     net_payable: record.netPayable,
                     status: record.status,
                     payment_date: record.paymentDate,
-                    notes: record.notes
+                    meal_allowance: record.mealAllowance || 0,
+                    overtime: record.overtime || 0,
+                    damage_cost: record.damageCost || 0,
+                    mistake_penalty: record.mistakePenalty || 0,
+                    debt_repayment: record.debtRepayment || 0,
+                    remaining_debt: record.remainingDebt || 0,
+                    notes: record.notes || ''
                 }, { onConflict: 'id' });
 
             if (error) console.error('Error syncing payroll:', error);
@@ -322,19 +330,34 @@ export const syncPayroll = async (localRecords: PayrollRecord[]): Promise<Payrol
 
         if (error) throw error;
 
-        return (data || []).map((p: any) => ({
+        // Keep local records if cloud has fewer (prevent data loss)
+        const cloudRecords = (data || []).map((p: any) => ({
             id: p.id,
             employeeId: p.employee_id,
             month: p.month,
             baseSalary: p.base_salary,
+            mealAllowance: p.meal_allowance || 0,
             commission: p.commission,
             bonus: p.bonus,
+            overtime: p.overtime || 0,
+            damageCost: p.damage_cost || 0,
+            mistakePenalty: p.mistake_penalty || 0,
+            debtRepayment: p.debt_repayment || 0,
+            remainingDebt: p.remaining_debt || 0,
             deductions: p.deductions,
             netPayable: p.net_payable,
             status: p.status,
             paymentDate: p.payment_date,
             notes: p.notes
         }));
+
+        // Merge: keep local records that aren't in cloud yet
+        const cloudIds = new Set(cloudRecords.map((r: any) => r.id));
+        const localOnly = localRecords.filter(r => !cloudIds.has(r.id));
+        const merged = [...cloudRecords, ...localOnly];
+        
+        console.log(`🔄 Payroll sync: ${cloudRecords.length} cloud + ${localOnly.length} local-only = ${merged.length} total`);
+        return merged;
     } catch (error) {
         console.error('Sync payroll error:', error);
         return localRecords;
@@ -450,6 +473,24 @@ export const syncSettings = async (localSettings: SystemSettings): Promise<Syste
     if (!isOnline || !supabase) return localSettings;
 
     try {
+        // STEP 1: Fetch cloud first to avoid overwriting
+        const { data: cloudData } = await supabase
+            .from('system_settings')
+            .select('*')
+            .eq('id', 'global')
+            .single();
+
+        // Merge: prefer local if non-empty, otherwise keep cloud
+        const mergedTeams = (localSettings.teams && localSettings.teams.length > 0)
+            ? localSettings.teams
+            : (cloudData?.teams || []);
+        const mergedPermissions = (localSettings.rolePermissions && Object.keys(localSettings.rolePermissions).length > 0)
+            ? localSettings.rolePermissions
+            : (cloudData?.role_permissions || {});
+        const mergedMktView = (localSettings.mktViewPermissions && Object.keys(localSettings.mktViewPermissions).length > 0)
+            ? localSettings.mktViewPermissions
+            : (cloudData?.mkt_view_permissions || {});
+
         const { error } = await supabase
             .from('system_settings')
             .upsert({
@@ -458,10 +499,10 @@ export const syncSettings = async (localSettings: SystemSettings): Promise<Syste
                 office_locations: localSettings.officeLocations,
                 available_roles: localSettings.availableRoles,
                 work_start_times: localSettings.workStartTimes,
-                role_permissions: localSettings.rolePermissions || {},
-                teams: localSettings.teams || [],
+                role_permissions: mergedPermissions,
+                teams: mergedTeams,
                 enable_geofencing: localSettings.enableGeofencing !== undefined ? localSettings.enableGeofencing : true,
-                mkt_view_permissions: localSettings.mktViewPermissions || {},
+                mkt_view_permissions: mergedMktView,
                 updated_at: new Date().toISOString()
             }, { onConflict: 'id' });
 
@@ -585,3 +626,55 @@ export const deleteContentPlan = async (planId: string): Promise<boolean> => {
     }
 };
 
+
+// ==================== PENALTY SYNC ====================
+
+export const syncPenalties = async (localPenalties: any[]): Promise<any[]> => {
+    if (!isOnline || !supabase) return localPenalties;
+
+    try {
+        for (const p of localPenalties) {
+            const { error } = await supabase
+                .from('penalty_records')
+                .upsert({
+                    id: p.id,
+                    employee_id: p.employeeId,
+                    date: p.date,
+                    amount: p.amount,
+                    reason: p.reason,
+                }, { onConflict: 'id' });
+            if (error) console.error('Error syncing penalty:', error);
+        }
+
+        const { data, error } = await supabase
+            .from('penalty_records')
+            .select('*')
+            .order('date', { ascending: false });
+
+        if (error) throw error;
+
+        const cloudRecords = (data || []).map((r: any) => ({
+            id: r.id,
+            employeeId: r.employee_id,
+            date: r.date,
+            amount: r.amount || 0,
+            reason: r.reason || '',
+        }));
+
+        const cloudIds = new Set(cloudRecords.map((r: any) => r.id));
+        const localOnly = localPenalties.filter(r => !cloudIds.has(r.id));
+        return [...cloudRecords, ...localOnly];
+    } catch (error) {
+        console.error('Sync penalties error:', error);
+        return localPenalties;
+    }
+};
+
+export const deletePenalty = async (id: string): Promise<boolean> => {
+    if (!isOnline || !supabase) return false;
+    try {
+        const { error } = await supabase.from('penalty_records').delete().eq('id', id);
+        if (error) { console.error('Error deleting penalty:', error); return false; }
+        return true;
+    } catch { return false; }
+};

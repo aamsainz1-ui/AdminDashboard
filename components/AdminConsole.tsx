@@ -342,47 +342,7 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
               </div>
             </div>
 
-            <div className="space-y-4 pt-6 border-t border-slate-50">
-              <div className="flex items-center justify-between">
-                <h4 className="text-lg font-black text-slate-900">{t.locationTitle}</h4>
-                <button
-                  onClick={() => setShowAddLocation(true)}
-                  className="text-xs font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-700"
-                >
-                  + {t.addLocation}
-                </button>
-              </div>
-              {/* Toggle Geofencing */}
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-3">
-                <div>
-                  <p className="text-sm font-black text-slate-900">{lang === 'TH' ? '📍 เปิดใช้ตรวจสอบตำแหน่ง' : '📍 Enable Geofencing'}</p>
-                  <p className="text-[10px] font-bold text-slate-400">{lang === 'TH' ? 'บังคับให้เช็คอินในพื้นที่ที่กำหนด' : 'Require check-in within office area'}</p>
-                </div>
-                <button
-                  onClick={() => onUpdateSettings({ ...settings, enableGeofencing: !(settings.enableGeofencing !== false) })}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${settings.enableGeofencing !== false ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                >
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${settings.enableGeofencing !== false ? 'left-7' : 'left-1'}`} />
-                </button>
-              </div>
-              <div className="space-y-3">
-                {(settings.officeLocations || []).map(loc => (
-                  <div key={loc.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group">
-                    <div>
-                      <p className="text-sm font-black text-slate-900">{loc.name}</p>
-                      <p className="text-[10px] font-bold text-slate-400">{loc.latitude}, {loc.longitude} ({loc.radius}m)</p>
-                    </div>
-                    <button
-                      onClick={() => onUpdateSettings({ ...settings, officeLocations: settings.officeLocations.filter(l => l.id !== loc.id) })}
-                      className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                      title="Remove Location"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Location section removed for admin dashboard */}
 
             <div className="space-y-4 pt-6 border-t border-slate-50">
               <h4 className="text-lg font-black text-slate-900">{t.rolesTitle}</h4>
@@ -557,30 +517,7 @@ const AdminConsole: React.FC<AdminConsoleProps> = ({
         </div>
       </div>
 
-      {/* MKT View Permission Section */}
-      {members.length > 0 && (
-        <div className="space-y-4 pt-6 border-t border-slate-50 mt-6">
-          <h4 className="text-lg font-black text-slate-900">👁️ {lang === Language.TH ? 'สิทธิ์ดูข้อมูล MKT' : 'MKT View Permission'}</h4>
-          <p className="text-xs text-slate-400 font-bold">{lang === Language.TH ? 'กำหนดว่าพนักงานแต่ละคนเห็นข้อมูลของใครใน MKT Dashboard' : 'Set which staff data each employee can view in MKT Dashboard'}</p>
-          <div className="space-y-3">
-            {members.filter(m => m.role !== 'ADMIN' && m.role !== 'OWNER').map(m => (
-              <div key={m.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-sm font-black text-slate-900">{m.name}</p>
-                <select
-                  value={(settings.mktViewPermissions || {})[m.id] || ''}
-                  onChange={e => onUpdateSettings({ ...settings, mktViewPermissions: { ...(settings.mktViewPermissions || {}), [m.id]: e.target.value } })}
-                  className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700"
-                >
-                  <option value="">ตัวเอง</option>
-                  {['เก่ง', 'แบงค์', 'ลัน', 'เม่า'].map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* MKT section removed for admin dashboard */}
 
       {showAddLocation && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-center justify-center p-6">

@@ -8,9 +8,12 @@ interface ProfileProps {
   leaves: LeaveRecord[];
   lang: Language;
   onResetFaceID: () => void;
+  onUpdateDisplayName?: (name: string) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ user, records, leaves, lang, onResetFaceID }) => {
+const Profile: React.FC<ProfileProps> = ({ user, records, leaves, lang, onResetFaceID, onUpdateDisplayName }) => {
+  const [displayName, setDisplayName] = React.useState(user.name || '');
+  const [nameSaved, setNameSaved] = React.useState(false);
   const stats = useMemo(() => {
     const now = new Date();
     
@@ -104,8 +107,14 @@ const Profile: React.FC<ProfileProps> = ({ user, records, leaves, lang, onResetF
           </div>
           
           <div className="flex-1 text-center sm:text-left space-y-1">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{user.name}</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{displayName || user.name}</h2>
             <p className="text-blue-600 font-bold tracking-wide uppercase text-[10px] sm:text-xs">{user.position} • {user.department}</p>
+            {onUpdateDisplayName && (
+              <div className="flex items-center gap-2 mt-2">
+                <input type="text" value={displayName} onChange={e => { setDisplayName(e.target.value); setNameSaved(false); }} placeholder="ชื่อที่แสดง" className="px-3 py-1.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 w-40" />
+                <button onClick={() => { onUpdateDisplayName(displayName); setNameSaved(true); setTimeout(() => setNameSaved(false), 2000); }} className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-black hover:bg-blue-700 transition-all">{nameSaved ? '✓ บันทึกแล้ว' : 'บันทึก'}</button>
+              </div>
+            )}
             
             <div className="grid grid-cols-2 gap-4 mt-6 sm:mt-8 pt-6 border-t border-slate-100">
               <div>
@@ -146,39 +155,60 @@ const Profile: React.FC<ProfileProps> = ({ user, records, leaves, lang, onResetF
           </h3>
           <div className="space-y-6">
             <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2.5 bg-white rounded-xl shadow-sm">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-900 uppercase tracking-tight">Biometric Auth</p>
-                    <p className={`text-[10px] font-bold ${user.storedFace ? 'text-green-500' : 'text-slate-400'}`}>
-                      {user.storedFace ? t.faceRegistered : t.faceNotRegistered}
-                    </p>
-                  </div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2.5 bg-white rounded-xl shadow-sm">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{lang === Language.TH ? 'เปลี่ยน PIN' : 'Change PIN'}</p>
+                  <p className="text-[10px] font-bold text-slate-400">{lang === Language.TH ? 'รหัสสำหรับล็อกอินเข้าระบบ' : 'Login PIN code'}</p>
                 </div>
               </div>
               
-              <button
-                onClick={handleResetFaceID}
-                disabled={!user.storedFace}
-                className={`w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  user.storedFace 
-                    ? 'bg-white text-red-600 border border-red-100 hover:bg-red-50 shadow-sm active:scale-95' 
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                }`}
-              >
-                {t.resetFaceID}
-              </button>
-              
-              <p className="mt-4 text-[9px] text-slate-400 leading-relaxed">
-                {lang === Language.TH 
-                  ? "การรีเซ็ตจะลบชุดข้อมูลใบหน้าเดิมออกเพื่อความปลอดภัยในกรณีที่มีการเปลี่ยนแปลงรูปลักษณ์ที่ส่งผลต่อการจดจำ" 
-                  : "Resetting will clear previous biometric data for security or in case of significant appearance changes affecting recognition."}
-              </p>
+              <div className="space-y-3" id="change-pin-form">
+                <input
+                  type="password"
+                  placeholder={lang === Language.TH ? 'PIN ปัจจุบัน' : 'Current PIN'}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="current-pin"
+                />
+                <input
+                  type="password"
+                  placeholder={lang === Language.TH ? 'PIN ใหม่' : 'New PIN'}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="new-pin"
+                />
+                <input
+                  type="password"
+                  placeholder={lang === Language.TH ? 'ยืนยัน PIN ใหม่' : 'Confirm New PIN'}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="confirm-pin"
+                />
+                <button
+                  onClick={() => {
+                    const current = (document.getElementById('current-pin') as HTMLInputElement)?.value;
+                    const newPin = (document.getElementById('new-pin') as HTMLInputElement)?.value;
+                    const confirm = (document.getElementById('confirm-pin') as HTMLInputElement)?.value;
+                    if (!current || !newPin || !confirm) { alert(lang === Language.TH ? 'กรุณากรอกให้ครบ' : 'Please fill all fields'); return; }
+                    if (current !== user.pin) { alert(lang === Language.TH ? 'PIN ปัจจุบันไม่ถูกต้อง' : 'Current PIN is incorrect'); return; }
+                    if (newPin !== confirm) { alert(lang === Language.TH ? 'PIN ใหม่ไม่ตรงกัน' : 'New PINs do not match'); return; }
+                    if (newPin.length < 4) { alert(lang === Language.TH ? 'PIN ต้องมีอย่างน้อย 4 หลัก' : 'PIN must be at least 4 digits'); return; }
+                    // Update PIN via parent
+                    const updatedUser = { ...user, pin: newPin };
+                    localStorage.setItem('admin_dashboard_v1_data', JSON.stringify({
+                      ...JSON.parse(localStorage.getItem('admin_dashboard_v1_data') || '{}'),
+                      users: JSON.parse(localStorage.getItem('admin_dashboard_v1_data') || '{}').users?.map((u: any) => u.id === user.id ? { ...u, pin: newPin } : u)
+                    }));
+                    alert(lang === Language.TH ? 'เปลี่ยน PIN สำเร็จ! กรุณาล็อกอินใหม่' : 'PIN changed! Please re-login');
+                    window.location.reload();
+                  }}
+                  className="w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-600/20"
+                >
+                  {lang === Language.TH ? 'เปลี่ยน PIN' : 'Change PIN'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

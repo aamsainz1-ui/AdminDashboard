@@ -166,7 +166,7 @@ const loadTodayData = async (thaiDate: string): Promise<MktData> => {
 };
 
 const upsertRow = async (thaiDate: string, tab: string, name: string, row: RowData) => {
-  await supaFetch('/rest/v1/mkt_data', {
+  await supaFetch('/rest/v1/mkt_data?on_conflict=date,tab,name', {
     method: 'POST',
     body: JSON.stringify({
       date: thaiDate,
@@ -344,12 +344,12 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">MKT Dashboard</h2>
+          <h2 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">MKT Dashboard</h2>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">ติดตามผลการตลาดรายวัน</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {saving && (
             <span className="text-xs font-bold text-emerald-500 animate-pulse">💾 กำลังบันทึก...</span>
           )}
@@ -360,7 +360,7 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
             <select
               value={staffFilter}
               onChange={e => setStaffFilter(e.target.value)}
-              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              className="px-3 py-2.5 min-h-[44px] rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             >
               <option value="all">👥 ทั้งหมด</option>
               {STAFF.map(s => (
@@ -372,7 +372,7 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
             type="date"
             value={selectedDate}
             onChange={e => setSelectedDate(e.target.value)}
-            className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            className="px-3 py-2.5 min-h-[44px] rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
           />
         </div>
       </div>
@@ -384,7 +384,7 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
             <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest">💸 ยอดเบิก/โอนวันนี้</h3>
             <span className="text-[10px] font-bold text-slate-400">{withdrawData.date}</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             {withdrawData.data.map(item => (
               <div key={item.name} className="rounded-2xl border border-slate-100 bg-white/60 backdrop-blur-sm p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
@@ -418,12 +418,12 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
       )}
 
       {/* Tab Selector */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {TABS.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+            className={`px-4 sm:px-6 py-3 min-h-[44px] rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${
               activeTab === tab
                 ? 'bg-slate-900 text-white shadow-2xl shadow-slate-900/20 scale-105'
                 : 'bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-700 border border-slate-100'
@@ -436,15 +436,15 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
 
       {/* Table */}
       <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -webkit-overflow-scrolling-touch">
+          <table className="w-full text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-slate-100">
-                <th className="text-left px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-white/90 backdrop-blur-sm z-10 min-w-[80px]">
+                <th className="text-left px-3 sm:px-4 py-3 sm:py-4 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-white z-10 min-w-[72px] sm:min-w-[90px] shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
                   Staff
                 </th>
                 {COLUMNS.map(col => (
-                  <th key={col.key} className="px-3 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right min-w-[90px]">
+                  <th key={col.key} className="px-2 sm:px-3 py-3 sm:py-4 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right min-w-[72px] sm:min-w-[90px] whitespace-nowrap">
                     {col.label}
                   </th>
                 ))}
@@ -456,27 +456,27 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
                 const isSaving = saving === `${activeTab}:${staff}`;
                 return (
                   <tr key={staff} className={`border-b border-slate-50 transition-colors hover:bg-blue-50/30 ${idx % 2 === 0 ? 'bg-slate-50/30' : ''} ${isSaving ? 'opacity-70' : ''}`}>
-                    <td className="px-4 py-3 font-black text-slate-800 sticky left-0 bg-inherit z-10">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-lg shadow-blue-500/20">
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 font-black text-slate-800 sticky left-0 bg-white z-10 shadow-[2px_0_4px_rgba(0,0,0,0.04)]" style={{backgroundColor: idx % 2 === 0 ? 'rgb(248,250,252)' : 'white'}}>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] sm:text-xs font-black shadow-lg shadow-blue-500/20 flex-shrink-0">
                           {staff[0]}
                         </div>
-                        {staff}
+                        <span className="text-xs sm:text-sm whitespace-nowrap">{staff}</span>
                         {isSaving && <span className="text-[9px] text-emerald-500 font-bold">💾</span>}
                       </div>
                     </td>
                     {COLUMNS.map(col => (
-                      <td key={col.key} className="px-3 py-3 text-right">
-                        {col.editable ? (
+                      <td key={col.key} className="px-2 sm:px-3 py-2 sm:py-3 text-right">
+                        {col.editable && isAdmin ? (
                           <input
                             type="number"
                             value={(row as any)[col.key] || ''}
                             onChange={e => handleChange(staff, col.key, e.target.value)}
-                            className="w-full text-right px-2 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all hover:border-slate-300"
+                            className="w-full text-right px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all hover:border-slate-300 min-h-[36px]"
                             placeholder="0"
                           />
                         ) : (
-                          <span className={`font-black text-sm ${
+                          <span className={`font-black text-xs sm:text-sm ${
                             col.key === 'totalAds' ? 'text-amber-600' :
                             col.key === 'depositPct' ? 'text-emerald-600' :
                             col.key === 'avgPerUser' ? 'text-blue-600' :
@@ -495,17 +495,17 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
 
               {/* Total Row */}
               <tr className="bg-slate-900/5 border-t-2 border-slate-200">
-                <td className="px-4 py-4 font-black text-slate-900 sticky left-0 bg-slate-100/80 backdrop-blur-sm z-10">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-xs font-black shadow-lg">
+                <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-slate-900 sticky left-0 bg-slate-100 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-[10px] sm:text-xs font-black shadow-lg flex-shrink-0">
                       Σ
                     </div>
-                    รวม
+                    <span className="text-xs sm:text-sm">รวม</span>
                   </div>
                 </td>
                 {COLUMNS.map(col => (
-                  <td key={col.key} className="px-3 py-4 text-right">
-                    <span className={`font-black text-sm ${
+                  <td key={col.key} className="px-2 sm:px-3 py-3 sm:py-4 text-right">
+                    <span className={`font-black text-xs sm:text-sm ${
                       col.key === 'totalAds' ? 'text-amber-700' :
                       col.key === 'depositPct' ? 'text-emerald-700' :
                       'text-slate-900'
@@ -521,7 +521,7 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
         <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] border border-slate-100 p-5 shadow-sm">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">ค่าใช้จ่ายรวม</p>
           <p className="text-2xl font-black text-amber-600">{fmt(totalRecalced.totalAds)}</p>
@@ -542,75 +542,75 @@ const MktDashboard: React.FC<MktDashboardProps> = ({ defaultStaff, isAdmin = tru
 
       {/* ===== Monthly Summary ===== */}
       <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest">📊 สรุปเดือนนี้</h3>
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-widest">📊 สรุปเดือนนี้</h3>
           {loadingMonthly && <span className="text-xs text-blue-400 font-bold animate-pulse">⏳ กำลังโหลด...</span>}
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -webkit-overflow-scrolling-touch">
+          <table className="w-full text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-slate-100">
-                <th className="text-left px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-white/90 z-10 min-w-[80px]">Staff</th>
-                <th className="px-3 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">FB</th>
-                <th className="px-3 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Google</th>
-                <th className="px-3 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">TikTok</th>
-                <th className="px-3 py-3 text-[10px] font-black text-amber-500 uppercase tracking-widest text-right">รวม ADS</th>
-                <th className="px-3 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">สมัคร</th>
-                <th className="px-3 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">สมาชิกฝาก</th>
-                <th className="px-3 py-3 text-[10px] font-black text-emerald-500 uppercase tracking-widest text-right">%ฝาก</th>
-                <th className="px-3 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">ฝากแรก</th>
-                <th className="px-3 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">ฝากทั้งวัน</th>
-                <th className="px-3 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">ฝากทั้งเดือน</th>
+                <th className="text-left px-3 sm:px-4 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-white z-10 min-w-[72px] sm:min-w-[90px] shadow-[2px_0_4px_rgba(0,0,0,0.04)]">Staff</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">FB</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">Google</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">TikTok</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-amber-500 uppercase tracking-widest text-right whitespace-nowrap">รวม ADS</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">สมัคร</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">สมาชิกฝาก</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest text-right whitespace-nowrap">%ฝาก</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">ฝากแรก</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">ฝากทั้งวัน</th>
+                <th className="px-2 sm:px-3 py-3 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest text-right whitespace-nowrap">ฝากทั้งเดือน</th>
               </tr>
             </thead>
             <tbody>
               {displayMonthlySummary.length === 0 && !loadingMonthly ? (
                 <tr>
-                  <td colSpan={11} className="text-center py-8 text-slate-400 text-sm font-bold">ไม่มีข้อมูลในเดือนนี้</td>
+                  <td colSpan={11} className="text-center py-8 text-slate-400 text-xs sm:text-sm font-bold">ไม่มีข้อมูลในเดือนนี้</td>
                 </tr>
               ) : (
                 <>
                   {displayMonthlySummary.map((r, idx) => (
                     <tr key={r.name} className={`border-b border-slate-50 hover:bg-blue-50/30 ${idx % 2 === 0 ? 'bg-slate-50/30' : ''}`}>
-                      <td className="px-4 py-3 font-black text-slate-800 sticky left-0 bg-inherit z-10">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-black">
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 font-black text-slate-800 sticky left-0 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.04)]" style={{backgroundColor: idx % 2 === 0 ? 'rgb(248,250,252)' : 'white'}}>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-[10px] sm:text-xs font-black flex-shrink-0">
                             {r.name[0]}
                           </div>
-                          {r.name}
+                          <span className="whitespace-nowrap text-xs sm:text-sm">{r.name}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">{fmt(r.fb)}</td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">{fmt(r.google)}</td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">{fmt(r.tiktok)}</td>
-                      <td className="px-3 py-3 text-right font-black text-amber-600">{fmt(r.totalAds)}</td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">{fmt(r.register)}</td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">{fmt(r.deposit_member)}</td>
-                      <td className="px-3 py-3 text-right font-black text-emerald-600">{fmtPct(r.depositPct)}</td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">{fmt(r.first_deposit)}</td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">{fmt(r.daily_deposit)}</td>
-                      <td className="px-3 py-3 text-right font-bold text-slate-700">{fmt(r.month_deposit)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-slate-700 whitespace-nowrap">{fmt(r.fb)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-slate-700 whitespace-nowrap">{fmt(r.google)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-slate-700 whitespace-nowrap">{fmt(r.tiktok)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-black text-amber-600 whitespace-nowrap">{fmt(r.totalAds)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-slate-700 whitespace-nowrap">{fmt(r.register)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-slate-700 whitespace-nowrap">{fmt(r.deposit_member)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-black text-emerald-600 whitespace-nowrap">{fmtPct(r.depositPct)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-slate-700 whitespace-nowrap">{fmt(r.first_deposit)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-slate-700 whitespace-nowrap">{fmt(r.daily_deposit)}</td>
+                      <td className="px-2 sm:px-3 py-2 sm:py-3 text-right font-bold text-slate-700 whitespace-nowrap">{fmt(r.month_deposit)}</td>
                     </tr>
                   ))}
                   {/* Monthly total row */}
                   {displayMonthlySummary.length > 0 && (
                     <tr className="bg-slate-900/5 border-t-2 border-slate-200">
-                      <td className="px-4 py-4 font-black text-slate-900 sticky left-0 bg-slate-100/80 z-10">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-xs font-black">Σ</div>
-                          รวม
+                      <td className="px-3 sm:px-4 py-3 sm:py-4 font-black text-slate-900 sticky left-0 bg-slate-100 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.04)]">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-[10px] sm:text-xs font-black flex-shrink-0">Σ</div>
+                          <span className="text-xs sm:text-sm">รวม</span>
                         </div>
                       </td>
-                      <td className="px-3 py-4 text-right font-black text-slate-900">{fmt(monthTotals.fb)}</td>
-                      <td className="px-3 py-4 text-right font-black text-slate-900">{fmt(monthTotals.google)}</td>
-                      <td className="px-3 py-4 text-right font-black text-slate-900">{fmt(monthTotals.tiktok)}</td>
-                      <td className="px-3 py-4 text-right font-black text-amber-700">{fmt(monthTotals.totalAds)}</td>
-                      <td className="px-3 py-4 text-right font-black text-slate-900">{fmt(monthTotals.register)}</td>
-                      <td className="px-3 py-4 text-right font-black text-slate-900">{fmt(monthTotals.deposit_member)}</td>
-                      <td className="px-3 py-4 text-right font-black text-emerald-700">{fmtPct(monthTotals.depositPct)}</td>
-                      <td className="px-3 py-4 text-right font-black text-slate-900">{fmt(monthTotals.first_deposit)}</td>
-                      <td className="px-3 py-4 text-right font-black text-slate-900">{fmt(monthTotals.daily_deposit)}</td>
-                      <td className="px-3 py-4 text-right font-black text-slate-900">{fmt(monthTotals.month_deposit)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-slate-900 whitespace-nowrap">{fmt(monthTotals.fb)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-slate-900 whitespace-nowrap">{fmt(monthTotals.google)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-slate-900 whitespace-nowrap">{fmt(monthTotals.tiktok)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-amber-700 whitespace-nowrap">{fmt(monthTotals.totalAds)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-slate-900 whitespace-nowrap">{fmt(monthTotals.register)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-slate-900 whitespace-nowrap">{fmt(monthTotals.deposit_member)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-emerald-700 whitespace-nowrap">{fmtPct(monthTotals.depositPct)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-slate-900 whitespace-nowrap">{fmt(monthTotals.first_deposit)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-slate-900 whitespace-nowrap">{fmt(monthTotals.daily_deposit)}</td>
+                      <td className="px-2 sm:px-3 py-3 sm:py-4 text-right font-black text-slate-900 whitespace-nowrap">{fmt(monthTotals.month_deposit)}</td>
                     </tr>
                   )}
                 </>

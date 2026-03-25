@@ -9,6 +9,7 @@ interface TeamManagementProps {
     onDeleteTeam: (id: string) => void;
     onUpdateTeam: (id: string, updates: Partial<Team>) => void;
     onAssignMemberToTeam: (memberId: string, teamId: string | null) => void;
+    onConfirmAction?: (title: string, message: string, onConfirm: () => void) => void;
 }
 
 const TEAM_COLORS = [
@@ -29,7 +30,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     onCreateTeam,
     onDeleteTeam,
     onUpdateTeam,
-    onAssignMemberToTeam
+    onAssignMemberToTeam,
+    onConfirmAction
 }) => {
     const [showAddTeam, setShowAddTeam] = useState(false);
     const [newTeam, setNewTeam] = useState({
@@ -119,9 +121,9 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                                     </div>
                                     <button
                                         onClick={() => {
-                                            if (confirm(lang === Language.TH ? 'ต้องการลบทีมนี้?' : 'Delete this team?')) {
-                                                onDeleteTeam(team.id);
-                                            }
+                                            const msg = lang === Language.TH ? `ต้องการลบทีม "${team.name}" ใช่หรือไม่?` : `Delete team "${team.name}"?`;
+                                            if (onConfirmAction) onConfirmAction(lang === Language.TH ? 'ลบทีม' : 'Delete Team', msg, () => onDeleteTeam(team.id));
+                                            else if (confirm(msg)) onDeleteTeam(team.id);
                                         }}
                                         className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                                         title={t.delete}
@@ -162,11 +164,9 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                                             </div>
                                             <button
                                                 onClick={() => {
-                                                    if (confirm(lang === Language.TH
-                                                        ? `ต้องการลบ ${member.name} ออกจากทีม ${team.name}?`
-                                                        : `Remove ${member.name} from ${team.name}?`)) {
-                                                        onAssignMemberToTeam(member.id, null);
-                                                    }
+                                                    const msg = lang === Language.TH ? `ต้องการลบ ${member.name} ออกจากทีม ${team.name}?` : `Remove ${member.name} from ${team.name}?`;
+                                                    if (onConfirmAction) onConfirmAction(lang === Language.TH ? 'นำออกจากทีม' : 'Remove Member', msg, () => onAssignMemberToTeam(member.id, null));
+                                                    else if (confirm(msg)) onAssignMemberToTeam(member.id, null);
                                                 }}
                                                 className="p-1.5 text-slate-300 hover:text-red-500 opacity-0 group-hover/member:opacity-100 transition-all"
                                                 title={t.remove}

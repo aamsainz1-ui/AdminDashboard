@@ -44,15 +44,15 @@ export const getDefaultPermissions = (role: string): PermissionKey[] => {
 
     // ADMIN มีสิทธิ์ทั้งหมด
     if (roleUpper === 'ADMIN') {
-        return ['dashboard', 'history', 'insights', 'profile', 'leave', 'organization', 'announcements', 'content', 'calendar', 'payroll', 'summary', 'admin', 'mkt', 'permissions', 'teams'];
+        return ['dashboard', 'history', 'insights', 'profile', 'leave', 'organization', 'announcements', 'content', 'calendar', 'payroll', 'admin', 'mkt', 'mkt_edit', 'chat', 'chat_dm', 'permissions', 'teams'];
     }
 
     // MANAGER มีสิทธิ์ส่วนใหญ่ ยกเว้น admin
     if (roleUpper === 'MANAGER') {
-        return ['dashboard', 'history', 'insights', 'profile', 'leave', 'organization', 'announcements', 'content', 'payroll', 'summary'];
+        return ['dashboard', 'history', 'insights', 'profile', 'leave', 'organization', 'announcements', 'content', 'payroll'];
     }
 
     // EMPLOYEE มีสิทธิ์พื้นฐาน + mkt
-    return ['dashboard', 'history', 'profile', 'leave', 'announcements', 'mkt'];
+    return ['dashboard', 'history', 'profile', 'leave', 'announcements', 'mkt', 'chat'];
 };
 
