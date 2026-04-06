@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { UserProfile, Language } from '../types';
 
+const hashPIN = async (pin: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pin + 'gw_salt_2026');
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
 interface PINLoginProps {
   users: UserProfile[];
   onLogin: (user: UserProfile) => void;
@@ -12,7 +19,7 @@ const PINLogin: React.FC<PINLoginProps> = ({ users, onLogin, lang }) => {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (e?: React.FormEvent) => {
+  const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     const q = userInput.trim();
@@ -29,10 +36,30 @@ const PINLogin: React.FC<PINLoginProps> = ({ users, onLogin, lang }) => {
       return;
     }
 
-    if (String(matched.pin || '') !== String(pin)) {
+    const hashed = await hashPIN(pin);
+    // Support both hashed and legacy plaintext PIN
+    const pinOk = matched.pinHash
+      ? hashed === matched.pinHash
+      : String(matched.pin || '') === String(pin);
+
+    if (!pinOk) {
       setError(lang === Language.TH ? 'รหัส PIN ไม่ถูกต้อง' : 'Incorrect PIN');
       return;
     }
+
+    // Log login
+    try {
+      fetch('/api/log-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: matched.id,
+          user_name: matched.name,
+          role: matched.role,
+          device: /Mobile|Android|iPhone/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
+        }),
+      });
+    } catch {}
 
     setError('');
     onLogin(matched);

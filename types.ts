@@ -112,6 +112,7 @@ export interface UserProfile {
   storedFace?: string;
   faceSignature?: number[];
   pin?: string; // 4-6 digit PIN for switching accounts
+  pinHash?: string; // SHA-256 hashed PIN
   leaveBalances: {
     sick: number;
     annual: number;
