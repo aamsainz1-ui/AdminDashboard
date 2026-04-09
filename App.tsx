@@ -4,7 +4,6 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
-import EmployeePayrollView from './components/EmployeePayrollView';
 import History from './components/History';
 import GeminiInsights from './components/GeminiInsights';
 import FaceScanner from './components/FaceScanner';
