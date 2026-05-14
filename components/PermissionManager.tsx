@@ -16,6 +16,7 @@ const ALL_PERMISSIONS: Permission[] = [
     { key: 'leave', label: 'Leave Management', labelTH: 'จัดการวันลา', icon: '🏖️' },
     { key: 'history', label: 'Leave History', labelTH: 'ประวัติการลา', icon: '📅' },
     { key: 'permissions', label: 'Permissions', labelTH: 'จัดการสิทธิ์', icon: '🔐' },
+    { key: 'tasks', label: 'Tasks', labelTH: 'งาน', icon: '✅' },
     { key: 'admin', label: 'System Settings', labelTH: 'ตั้งค่าระบบ', icon: '⚙️' },
     { key: 'penalty', label: 'Penalty Report', labelTH: 'รายงานข้อผิดพลาด/ค่าปรับ', icon: '⚠️' },
     { key: 'chat', label: 'Chat', labelTH: 'แชท', icon: '💬' },

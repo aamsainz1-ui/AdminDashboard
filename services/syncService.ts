@@ -1,5 +1,5 @@
 import { supabase, isOnline } from './supabase';
-import { UserProfile, AttendanceRecord, LeaveRecord, Announcement, ContentPlan, PayrollRecord, CompensationSettings, DailySummaryRecord, SystemSettings } from '../types';
+import { UserProfile, AttendanceRecord, LeaveRecord, Announcement, ContentPlan, PayrollRecord, CompensationSettings, DailySummaryRecord, SystemSettings, Task, TaskComment } from '../types';
 
 // ==================== SYNC FUNCTIONS ====================
 
@@ -293,6 +293,175 @@ export const syncContentPlans = async (localPlans: ContentPlan[]): Promise<Conte
     }
 };
 
+export const syncTasks = async (localTasks: Task[]): Promise<Task[]> => {
+    if (!isOnline || !supabase) return localTasks;
+
+    try {
+        const { data: cloudData, error: fetchError } = await supabase
+            .from('tasks')
+            .select('*')
+            .order('updated_at', { ascending: false });
+
+        if (fetchError) throw fetchError;
+
+        const cloudIds = new Set((cloudData || []).map((task: any) => task.id));
+
+        for (const task of localTasks) {
+            if (!cloudIds.has(task.id)) {
+                const { error } = await supabase
+                    .from('tasks')
+                    .upsert({
+                        id: task.id,
+                        title: task.title,
+                        description: task.description,
+                        status: task.status,
+                        priority: task.priority,
+                        assignee_id: task.assigneeId || null,
+                        due_date: task.dueDate || null,
+                        tags: task.tags || [],
+                        subtasks: task.subtasks || [],
+                        created_by: task.createdBy,
+                        created_at: task.createdAt,
+                        updated_at: task.updatedAt
+                    }, { onConflict: 'id' });
+
+                if (error) console.error('Error syncing task:', error);
+            }
+        }
+
+        const { data: finalData, error: finalError } = await supabase
+            .from('tasks')
+            .select('*')
+            .order('updated_at', { ascending: false });
+
+        if (finalError) throw finalError;
+
+        return (finalData || []).map((task: any) => ({
+            id: task.id,
+            title: task.title,
+            description: task.description || '',
+            status: task.status,
+            priority: task.priority,
+            assigneeId: task.assignee_id || undefined,
+            dueDate: task.due_date || undefined,
+            tags: task.tags || [],
+            subtasks: task.subtasks || [],
+            createdBy: task.created_by,
+            createdAt: task.created_at,
+            updatedAt: task.updated_at
+        }));
+    } catch (error) {
+        console.error('Sync tasks error:', error);
+        return localTasks;
+    }
+};
+
+export const syncTaskComments = async (localComments: TaskComment[]): Promise<TaskComment[]> => {
+    if (!isOnline || !supabase) return localComments;
+
+    try {
+        const { data: cloudData, error: fetchError } = await supabase
+            .from('task_comments')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        if (fetchError) throw fetchError;
+
+        const cloudIds = new Set((cloudData || []).map((comment: any) => comment.id));
+
+        for (const comment of localComments) {
+            if (!cloudIds.has(comment.id)) {
+                const { error } = await supabase
+                    .from('task_comments')
+                    .upsert({
+                        id: comment.id,
+                        task_id: comment.taskId,
+                        author_id: comment.authorId,
+                        content: comment.content,
+                        created_at: comment.createdAt
+                    }, { onConflict: 'id' });
+
+                if (error) console.error('Error syncing task comment:', error);
+            }
+        }
+
+        const { data: finalData, error: finalError } = await supabase
+            .from('task_comments')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        if (finalError) throw finalError;
+
+        return (finalData || []).map((comment: any) => ({
+            id: comment.id,
+            taskId: comment.task_id,
+            authorId: comment.author_id,
+            content: comment.content,
+            createdAt: comment.created_at
+        }));
+    } catch (error) {
+        console.error('Sync task comments error:', error);
+        return localComments;
+    }
+};
+
+export const upsertTask = async (task: Task): Promise<boolean> => {
+    if (!isOnline || !supabase) return false;
+
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .upsert({
+                id: task.id,
+                title: task.title,
+                description: task.description,
+                status: task.status,
+                priority: task.priority,
+                assignee_id: task.assigneeId || null,
+                due_date: task.dueDate || null,
+                tags: task.tags || [],
+                subtasks: task.subtasks || [],
+                created_by: task.createdBy,
+                created_at: task.createdAt,
+                updated_at: task.updatedAt
+            }, { onConflict: 'id' });
+
+        if (error) {
+            console.error('Error upserting task:', error);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Upsert task error:', error);
+        return false;
+    }
+};
+
+export const upsertComment = async (comment: TaskComment): Promise<boolean> => {
+    if (!isOnline || !supabase) return false;
+
+    try {
+        const { error } = await supabase
+            .from('task_comments')
+            .upsert({
+                id: comment.id,
+                task_id: comment.taskId,
+                author_id: comment.authorId,
+                content: comment.content,
+                created_at: comment.createdAt
+            }, { onConflict: 'id' });
+
+        if (error) {
+            console.error('Error upserting task comment:', error);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Upsert task comment error:', error);
+        return false;
+    }
+};
+
 export const syncPayroll = async (localRecords: PayrollRecord[]): Promise<PayrollRecord[]> => {
     if (!isOnline || !supabase) return localRecords;
 
@@ -480,10 +649,13 @@ export const syncSettings = async (localSettings: SystemSettings): Promise<Syste
             .eq('id', 'global')
             .single();
 
-        // Merge: prefer local if non-empty, otherwise keep cloud
-        const mergedTeams = (localSettings.teams && localSettings.teams.length > 0)
-            ? localSettings.teams
-            : (cloudData?.teams || []);
+        // Merge teams by id: combine cloud + local, local wins on conflict
+        const cloudTeams: any[] = cloudData?.teams || [];
+        const localTeams: any[] = localSettings.teams || [];
+        const teamMap = new Map<string, any>();
+        cloudTeams.forEach((t: any) => { if (t && t.id) teamMap.set(t.id, t); });
+        localTeams.forEach((t: any) => { if (t && t.id) teamMap.set(t.id, t); });
+        const mergedTeams = Array.from(teamMap.values());
         const mergedPermissions = (localSettings.rolePermissions && Object.keys(localSettings.rolePermissions).length > 0)
             ? localSettings.rolePermissions
             : (cloudData?.role_permissions || {});
@@ -600,6 +772,28 @@ export const deleteAnnouncement = async (announcementId: string): Promise<boolea
         return true;
     } catch (error) {
         console.error('Delete announcement error:', error);
+        return false;
+    }
+};
+
+export const deleteTask = async (taskId: string): Promise<boolean> => {
+    if (!isOnline || !supabase) return false;
+
+    try {
+        const { error } = await supabase
+            .from('tasks')
+            .delete()
+            .eq('id', taskId);
+
+        if (error) {
+            console.error('Error deleting task:', error);
+            return false;
+        }
+
+        console.log(`✅ Task ${taskId} deleted from Supabase`);
+        return true;
+    } catch (error) {
+        console.error('Delete task error:', error);
         return false;
     }
 };

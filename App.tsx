@@ -16,6 +16,7 @@ import PayrollManager from './components/PayrollManager';
 import EmployeePayrollView from './components/EmployeePayrollView';
 import AdminConsole from './components/AdminConsole';
 import PermissionManager from './components/PermissionManager';
+import Tasks from './components/Tasks';
 import TeamStatusCard from './components/TeamStatusCard';
 import TeamManagement from './components/TeamManagement';
 import MktDashboard from './components/MktDashboard';
@@ -97,7 +98,7 @@ const App: React.FC = () => {
         payrollRecords: Array.isArray(saved.payrollRecords) ? saved.payrollRecords : [],
         compensationSettings: Array.isArray(saved.compensationSettings) ? saved.compensationSettings : [],
         lang: (localStorage.getItem('admin_lang_v1') as Language) || Language.TH,
-        tab: (['dashboard','payroll','announcements','organization','permissions','leave','admin','profile'].includes(localStorage.getItem('admin_tab_v1') || '') ? localStorage.getItem('admin_tab_v1') : 'dashboard') as any
+        tab: (['dashboard','payroll','announcements','organization','permissions','leave','admin','profile','tasks'].includes(localStorage.getItem('admin_tab_v1') || '') ? localStorage.getItem('admin_tab_v1') : 'dashboard') as any
       };
     } catch (e) {
       return { users: safeClone(DEFAULT_USERS), recordsMap: {}, leaves: [], settings: safeClone(DEFAULT_SETTINGS), lang: Language.TH, tab: 'dashboard' };
@@ -124,7 +125,7 @@ const App: React.FC = () => {
   const [leaves, setLeaves] = useState<LeaveRecord[]>(boot.leaves);
   const [settings, setSettings] = useState<SystemSettings>(boot.settings);
   const [lang, setLang] = useState<Language>(boot.lang);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leave' | 'profile' | 'organization' | 'announcements' | 'admin' | 'calendar' | 'mkt' | 'payroll' | 'permissions' | 'teams'>(boot.tab);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'leave' | 'profile' | 'organization' | 'announcements' | 'admin' | 'calendar' | 'mkt' | 'payroll' | 'permissions' | 'teams' | 'tasks'>(boot.tab);
   const [leaveMonthFilter, setLeaveMonthFilter] = useState<string>('all');
 
   const [isClockedIn, setIsClockedIn] = useState(() => records.length > 0 && records[0].type === AttendanceType.CHECK_IN);
@@ -702,6 +703,7 @@ const App: React.FC = () => {
               onAssignMemberToTeam={handleAssignMemberToTeam}
             />}
             {activeTab === 'announcements' && <Announcements announcements={announcements} lang={lang} isAdmin={currentUser.role === UserRole.ADMIN} onAdd={handleAddAnnouncement} onDelete={handleDeleteAnnouncement} />}
+            {activeTab === 'tasks' && <Tasks users={allUsers} currentUser={currentUser} lang={lang} />}
             {activeTab === 'calendar' && <ContentCalendar plans={contentPlans} onAdd={handleAddContentPlan} onDelete={handleDeleteContentPlan} lang={lang} />}
             {activeTab === 'mkt' && <MktDashboard isAdmin={currentUser.role === UserRole.ADMIN} defaultStaff={currentUser.role !== UserRole.ADMIN ? (settings.mktViewPermissions?.[currentUser.id] || currentUser.name) : undefined} />}
             {activeTab === 'payroll' && currentUser.role === UserRole.ADMIN && <PayrollManager members={allUsers.map(u => ({ id: u.id, employeeId: u.employeeId, name: u.name, avatar: u.avatar, position: u.position, department: u.department }))} payroll={payrollRecords} compensation={compensationSettings} penalties={penaltyRecords} onUpdateCompensation={handleUpdateCompensation} onProcessPayroll={handleProcessPayroll} onUpdatePayrollStatus={handleUpdatePayrollStatus} onAddPenalty={handleAddPenalty} onDeletePenalty={handleDeletePenalty} lang={lang} />}

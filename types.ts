@@ -89,6 +89,39 @@ export interface Announcement {
   category: 'GENERAL' | 'POLICY' | 'EVENT';
 }
 
+export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'review' | 'done';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface SubTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export interface TaskComment {
+  id: string;
+  taskId: string;
+  authorId: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assigneeId?: string;
+  dueDate?: string;
+  tags: string[];
+  subtasks: SubTask[];
+  comments?: TaskComment[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Team {
   id: string;
   name: string;
@@ -229,7 +262,9 @@ export type PermissionKey =
   | 'chat'
   | 'chat_dm'
   | 'permissions'
-  | 'teams';
+  | 'teams'
+  | 'tasks'
+  | 'penalty';
 
 export interface Permission {
   key: PermissionKey;
@@ -241,4 +276,3 @@ export interface Permission {
 export interface RolePermissions {
   [role: string]: PermissionKey[];
 }
-
