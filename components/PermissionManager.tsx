@@ -20,6 +20,11 @@ const ALL_PERMISSIONS: Permission[] = [
     { key: 'admin', label: 'System Settings', labelTH: 'ตั้งค่าระบบ', icon: '⚙️' },
     { key: 'penalty', label: 'Penalty Report', labelTH: 'รายงานข้อผิดพลาด/ค่าปรับ', icon: '⚠️' },
     { key: 'chat', label: 'Chat', labelTH: 'แชท', icon: '💬' },
+    { key: 'finance', label: 'Finance', labelTH: 'การเงิน', icon: '💰' },
+    { key: 'cashbook', label: 'Cashbook', labelTH: 'รายรับรายจ่าย', icon: '📒' },
+    { key: 'linebc', label: 'LINE Broadcast', labelTH: 'LINE บอร์ดแคส', icon: '📢' },
+    { key: 'accounts', label: 'Accounts Manager', labelTH: 'จัดการบัญชี', icon: '🔐' },
+    { key: 'brain', label: 'Brain Dump', labelTH: 'Brain Dump', icon: '🧠' },
 ];
 
 const PermissionManager: React.FC<PermissionManagerProps> = ({

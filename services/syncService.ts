@@ -872,3 +872,493 @@ export const deletePenalty = async (id: string): Promise<boolean> => {
         return true;
     } catch { return false; }
 };
+
+// ==================== FINANCE / OPS SYNC ====================
+
+type FinanceAccount = {
+    id: string;
+    name: string;
+    bank: string;
+    status: 'ACTIVE' | 'HOLD' | 'CLOSED';
+    limit: string;
+    owner: string;
+};
+
+type FinancePendingItem = {
+    id: string;
+    type: string;
+    amount: string;
+    account: string;
+    age: string;
+    status: 'URGENT' | 'CHECK' | 'WAIT';
+};
+
+type FinanceTransaction = {
+    id: string;
+    datetime: string;
+    type: 'DEPOSIT' | 'WITHDRAW';
+    amount: string;
+    account: string;
+    note: string;
+    by: string;
+};
+
+type BroadcastItem = {
+    id: string;
+    datetime: string;
+    topic: string;
+    caption: string;
+    imageUrl: string;
+    audience: string;
+    hasImage: boolean;
+    status: 'SCHEDULED' | 'REVIEW' | 'DRAFT' | 'SENT';
+};
+
+type CashEntry = {
+    id: string;
+    datetime: string;
+    category: string;
+    categoryColor: 'green' | 'red' | 'amber' | 'blue' | 'gray';
+    description: string;
+    type: 'IN' | 'OUT';
+    amount: string;
+    recordedBy: string;
+};
+
+type FixedCost = {
+    id: string;
+    name: string;
+    category: string;
+    categoryColor: 'red' | 'blue' | 'amber';
+    amount: string;
+    dueDate: string;
+    status: 'PAID' | 'PENDING' | 'AWAIT_BILL';
+};
+
+type CompanyLoan = {
+    id: string;
+    borrower: string;
+    amount: string;
+    purpose: string;
+    date: string;
+    status: 'PENDING' | 'APPROVED' | 'REPAID';
+};
+
+type CashbookPaymentMap = {
+    id: string;
+    card: string;
+    purpose: string;
+    account: string;
+    handler: string;
+};
+
+type AccountRegistryItem = {
+    id: string;
+    type: string;
+    name: string;
+    owner: string;
+    status: 'ACTIVE' | 'INACTIVE';
+    rights: string;
+};
+
+type AccountPaymentItem = {
+    id: string;
+    card: string;
+    service: string;
+    date: string;
+    category: string;
+    categoryColor: 'blue' | 'amber';
+    handler: string;
+};
+
+type BrainDumpItem = {
+    id: string;
+    text: string;
+    createdAt: number;
+};
+
+const mergeById = <T extends { id: string }>(cloudRows: T[], localRows: T[]): T[] => {
+    const cloudIds = new Set(cloudRows.map(row => row.id));
+    const localOnly = localRows.filter(row => !cloudIds.has(row.id));
+    return [...cloudRows, ...localOnly];
+};
+
+export const syncFinanceAccounts = async (localAccounts: FinanceAccount[]): Promise<FinanceAccount[]> => {
+    if (!isOnline || !supabase) return localAccounts;
+    try {
+        for (const account of localAccounts) {
+            const { error } = await supabase.from('finance_accounts').upsert({
+                id: account.id,
+                name: account.name,
+                bank: account.bank,
+                status: account.status,
+                limit_text: account.limit,
+                owner: account.owner,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing finance account:', error);
+        }
+        const { data, error } = await supabase.from('finance_accounts').select('*').order('created_at', { ascending: true });
+        if (error) throw error;
+        const cloudRows: FinanceAccount[] = (data || []).map((row: any) => ({
+            id: row.id,
+            name: row.name,
+            bank: row.bank,
+            status: row.status,
+            limit: row.limit_text || '-',
+            owner: row.owner || 'คุณ',
+        }));
+        return mergeById(cloudRows, localAccounts);
+    } catch (error) {
+        console.error('Sync finance accounts error:', error);
+        return localAccounts;
+    }
+};
+
+export const syncFinancePendingItems = async (localItems: FinancePendingItem[]): Promise<FinancePendingItem[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('finance_pending_items').upsert({
+                id: item.id,
+                type: item.type,
+                amount: item.amount,
+                account: item.account,
+                age: item.age,
+                status: item.status,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing finance pending item:', error);
+        }
+        const { data, error } = await supabase.from('finance_pending_items').select('*').order('created_at', { ascending: true });
+        if (error) throw error;
+        const cloudRows: FinancePendingItem[] = (data || []).map((row: any) => ({
+            id: row.id,
+            type: row.type,
+            amount: row.amount,
+            account: row.account,
+            age: row.age,
+            status: row.status,
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync finance pending items error:', error);
+        return localItems;
+    }
+};
+
+export const syncFinanceTransactions = async (localItems: FinanceTransaction[]): Promise<FinanceTransaction[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('finance_transactions').upsert({
+                id: item.id,
+                datetime: item.datetime,
+                type: item.type,
+                amount: item.amount,
+                account: item.account,
+                note: item.note,
+                by: item.by,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing finance transaction:', error);
+        }
+        const { data, error } = await supabase.from('finance_transactions').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        const cloudRows: FinanceTransaction[] = (data || []).map((row: any) => ({
+            id: row.id,
+            datetime: row.datetime,
+            type: row.type,
+            amount: row.amount,
+            account: row.account,
+            note: row.note || '',
+            by: row.by || 'คุณ',
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync finance transactions error:', error);
+        return localItems;
+    }
+};
+
+export const deleteFinancePendingItem = async (id: string): Promise<boolean> => {
+    if (!isOnline || !supabase) return false;
+    try {
+        const { error } = await supabase.from('finance_pending_items').delete().eq('id', id);
+        if (error) { console.error('Error deleting finance pending item:', error); return false; }
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+export const syncLineBroadcastItems = async (localItems: BroadcastItem[]): Promise<BroadcastItem[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('line_broadcast_items').upsert({
+                id: item.id,
+                datetime: item.datetime,
+                topic: item.topic,
+                caption: item.caption,
+                image_url: item.imageUrl,
+                audience: item.audience,
+                has_image: item.hasImage,
+                status: item.status,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing line broadcast:', error);
+        }
+        const { data, error } = await supabase.from('line_broadcast_items').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        const cloudRows: BroadcastItem[] = (data || []).map((row: any) => ({
+            id: row.id,
+            datetime: row.datetime,
+            topic: row.topic,
+            caption: row.caption || '',
+            imageUrl: row.image_url || '',
+            audience: row.audience || 'All',
+            hasImage: !!row.has_image,
+            status: row.status,
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync line broadcast items error:', error);
+        return localItems;
+    }
+};
+
+export const syncCashEntries = async (localItems: CashEntry[]): Promise<CashEntry[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('cashbook_entries').upsert({
+                id: item.id,
+                datetime: item.datetime,
+                category: item.category,
+                category_color: item.categoryColor,
+                description: item.description,
+                type: item.type,
+                amount: item.amount,
+                recorded_by: item.recordedBy,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing cash entry:', error);
+        }
+        const { data, error } = await supabase.from('cashbook_entries').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        const cloudRows: CashEntry[] = (data || []).map((row: any) => ({
+            id: row.id,
+            datetime: row.datetime,
+            category: row.category,
+            categoryColor: row.category_color,
+            description: row.description,
+            type: row.type,
+            amount: row.amount,
+            recordedBy: row.recorded_by || 'คุณ',
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync cash entries error:', error);
+        return localItems;
+    }
+};
+
+export const syncCashFixedCosts = async (localItems: FixedCost[]): Promise<FixedCost[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('cashbook_fixed_costs').upsert({
+                id: item.id,
+                name: item.name,
+                category: item.category,
+                category_color: item.categoryColor,
+                amount: item.amount,
+                due_date: item.dueDate,
+                status: item.status,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing fixed cost:', error);
+        }
+        const { data, error } = await supabase.from('cashbook_fixed_costs').select('*').order('created_at', { ascending: true });
+        if (error) throw error;
+        const cloudRows: FixedCost[] = (data || []).map((row: any) => ({
+            id: row.id,
+            name: row.name,
+            category: row.category,
+            categoryColor: row.category_color,
+            amount: row.amount,
+            dueDate: row.due_date,
+            status: row.status,
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync cash fixed costs error:', error);
+        return localItems;
+    }
+};
+
+export const syncCompanyLoans = async (localItems: CompanyLoan[]): Promise<CompanyLoan[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('cashbook_company_loans').upsert({
+                id: item.id,
+                borrower: item.borrower,
+                amount: item.amount,
+                purpose: item.purpose,
+                date: item.date,
+                status: item.status,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing company loan:', error);
+        }
+        const { data, error } = await supabase.from('cashbook_company_loans').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        const cloudRows: CompanyLoan[] = (data || []).map((row: any) => ({
+            id: row.id,
+            borrower: row.borrower,
+            amount: row.amount,
+            purpose: row.purpose,
+            date: row.date,
+            status: row.status,
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync company loans error:', error);
+        return localItems;
+    }
+};
+
+export const syncCashPaymentMaps = async (localItems: CashbookPaymentMap[]): Promise<CashbookPaymentMap[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('cashbook_payment_maps').upsert({
+                id: item.id,
+                card: item.card,
+                purpose: item.purpose,
+                account: item.account,
+                handler: item.handler,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing cash payment map:', error);
+        }
+        const { data, error } = await supabase.from('cashbook_payment_maps').select('*').order('created_at', { ascending: true });
+        if (error) throw error;
+        const cloudRows: CashbookPaymentMap[] = (data || []).map((row: any) => ({
+            id: row.id,
+            card: row.card,
+            purpose: row.purpose,
+            account: row.account,
+            handler: row.handler,
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync cash payment maps error:', error);
+        return localItems;
+    }
+};
+
+export const syncAccountRegistryItems = async (localItems: AccountRegistryItem[]): Promise<AccountRegistryItem[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('account_registry_items').upsert({
+                id: item.id,
+                type: item.type,
+                name: item.name,
+                owner: item.owner,
+                status: item.status,
+                rights: item.rights,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing account registry item:', error);
+        }
+        const { data, error } = await supabase.from('account_registry_items').select('*').order('created_at', { ascending: true });
+        if (error) throw error;
+        const cloudRows: AccountRegistryItem[] = (data || []).map((row: any) => ({
+            id: row.id,
+            type: row.type,
+            name: row.name,
+            owner: row.owner,
+            status: row.status,
+            rights: row.rights,
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync account registry items error:', error);
+        return localItems;
+    }
+};
+
+export const syncAccountPaymentItems = async (localItems: AccountPaymentItem[]): Promise<AccountPaymentItem[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('account_payment_items').upsert({
+                id: item.id,
+                card: item.card,
+                service: item.service,
+                date: item.date,
+                category: item.category,
+                category_color: item.categoryColor,
+                handler: item.handler,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing account payment item:', error);
+        }
+        const { data, error } = await supabase.from('account_payment_items').select('*').order('created_at', { ascending: true });
+        if (error) throw error;
+        const cloudRows: AccountPaymentItem[] = (data || []).map((row: any) => ({
+            id: row.id,
+            card: row.card,
+            service: row.service,
+            date: row.date,
+            category: row.category,
+            categoryColor: row.category_color,
+            handler: row.handler,
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync account payment items error:', error);
+        return localItems;
+    }
+};
+
+export const syncBrainDumpItems = async (localItems: BrainDumpItem[]): Promise<BrainDumpItem[]> => {
+    if (!isOnline || !supabase) return localItems;
+    try {
+        for (const item of localItems) {
+            const { error } = await supabase.from('brain_dump_items').upsert({
+                id: item.id,
+                text: item.text,
+                created_at: new Date(item.createdAt).toISOString(),
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' });
+            if (error) console.error('Error syncing brain dump item:', error);
+        }
+        const { data, error } = await supabase.from('brain_dump_items').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        const cloudRows: BrainDumpItem[] = (data || []).map((row: any) => ({
+            id: row.id,
+            text: row.text,
+            createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+        }));
+        return mergeById(cloudRows, localItems);
+    } catch (error) {
+        console.error('Sync brain dump items error:', error);
+        return localItems;
+    }
+};
+
+export const deleteBrainDumpItem = async (id: string): Promise<boolean> => {
+    if (!isOnline || !supabase) return false;
+    try {
+        const { error } = await supabase.from('brain_dump_items').delete().eq('id', id);
+        if (error) { console.error('Error deleting brain dump item:', error); return false; }
+        return true;
+    } catch {
+        return false;
+    }
+};

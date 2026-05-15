@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { OrganizationMember, Language, Team, UserProfile } from '../types';
 import TeamManagement from './TeamManagement';
+import ShiftCalendar from './ShiftCalendar';
+import CredentialsModal from './CredentialsModal';
 
 interface OrganizationProps {
   members: OrganizationMember[];
@@ -32,10 +34,11 @@ const Organization: React.FC<OrganizationProps> = ({
   onUpdateTeam,
   onAssignMemberToTeam
 }) => {
-  const [activeTab, setActiveTab] = useState<'members' | 'teams'>('members');
+  const [activeTab, setActiveTab] = useState<'members' | 'teams' | 'shifts'>('members');
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
+  const [credMember, setCredMember] = useState<OrganizationMember | null>(null);
 
   const filtered = members.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -77,7 +80,7 @@ const Organization: React.FC<OrganizationProps> = ({
 
             {/* Tabs */}
             {isAdmin && (
-              <div className="flex bg-slate-100 p-1.5 rounded-2xl">
+              <div className="flex bg-slate-100 p-1.5 rounded-2xl flex-wrap">
                 <button
                   onClick={() => setActiveTab('members')}
                   className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'members'
@@ -95,6 +98,15 @@ const Organization: React.FC<OrganizationProps> = ({
                     }`}
                 >
                   {lang === Language.TH ? 'จัดการทีม' : 'Manage Teams'}
+                </button>
+                <button
+                  onClick={() => setActiveTab('shifts')}
+                  className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'shifts'
+                    ? 'bg-white text-slate-900 shadow-lg'
+                    : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                >
+                  {lang === Language.TH ? 'ปฏิทินกะ' : 'Shift Calendar'}
                 </button>
               </div>
             )}
@@ -129,6 +141,8 @@ const Organization: React.FC<OrganizationProps> = ({
           onUpdateTeam={onUpdateTeam}
           onAssignMemberToTeam={onAssignMemberToTeam}
         />
+      ) : activeTab === 'shifts' && isAdmin ? (
+        <ShiftCalendar members={members} lang={lang} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.map(member => (
@@ -206,6 +220,13 @@ const Organization: React.FC<OrganizationProps> = ({
                     {isAdmin && onUpdateMember && (
                       <div className="flex gap-2">
                         <button
+                          onClick={() => setCredMember(member)}
+                          className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center active:scale-90"
+                          title={lang === Language.TH ? 'รหัสเข้าระบบ' : 'Credentials'}
+                        >
+                          🔑
+                        </button>
+                        <button
                           onClick={() => handleEditClick(member)}
                           className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center active:scale-90"
                           title={lang === Language.TH ? 'แก้ไข' : 'Edit'}
@@ -233,6 +254,10 @@ const Organization: React.FC<OrganizationProps> = ({
             </div>
           ))}
         </div>
+      )}
+
+      {credMember && (
+        <CredentialsModal member={credMember} lang={lang} onClose={() => setCredMember(null)} />
       )}
     </div>
   );
