@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { PayrollRecord, PenaltyRecord, CompensationSettings, OrganizationMember, Language } from '../types';
+import { PayrollRecord, PenaltyRecord, CompensationSettings, OrganizationMember, Language, LeaveRecord, LeaveStatus } from '../types';
 
 interface PayrollManagerProps {
     members: OrganizationMember[];
     payroll: PayrollRecord[];
     compensation: CompensationSettings[];
     penalties: PenaltyRecord[];
+    leaves?: LeaveRecord[];
     onUpdateCompensation: (data: CompensationSettings) => void;
     onProcessPayroll: (data: Omit<PayrollRecord, 'id'>) => void;
     onUpdatePayrollStatus?: (id: string, status: PayrollRecord['status']) => void;
@@ -14,7 +15,7 @@ interface PayrollManagerProps {
     lang: Language;
 }
 
-const PayrollManager: React.FC<PayrollManagerProps> = ({ members, payroll, compensation, penalties, onUpdateCompensation, onProcessPayroll, onUpdatePayrollStatus, onAddPenalty, onDeletePenalty, lang }) => {
+const PayrollManager: React.FC<PayrollManagerProps> = ({ members, payroll, compensation, penalties, leaves = [], onUpdateCompensation, onProcessPayroll, onUpdatePayrollStatus, onAddPenalty, onDeletePenalty, lang }) => {
     const [selectedMemberId, setSelectedMemberId] = useState<string>(members[0]?.id || '');
     const [activeTab, setActiveTab] = useState<'MANAGEMENT' | 'HISTORY' | 'PENALTIES'>('MANAGEMENT');
     const [historyMonthFilter, setHistoryMonthFilter] = useState<string>('all');
@@ -82,13 +83,41 @@ const PayrollManager: React.FC<PayrollManagerProps> = ({ members, payroll, compe
         notes: ''
     });
 
+    // คำนวณวันลา APPROVED ของพนักงานที่เลือก ในเดือนประมวลผล (processData.month: YYYY-MM)
+    const leaveDaysThisMonth = useMemo(() => {
+        if (!selectedMember || !leaves || leaves.length === 0) return 0;
+        const empKey = selectedMember.id;
+        const empKey2 = (selectedMember as any).employeeId;
+        const monthPrefix = processData.month; // 'YYYY-MM'
+        const matched = leaves.filter(l => {
+            if (l.status !== LeaveStatus.APPROVED) return false;
+            const matchEmp = l.employeeId === empKey || l.employeeId === empKey2 || (l.employeeName && l.employeeName === selectedMember.name);
+            if (!matchEmp) return false;
+            return (l.startDate || '').startsWith(monthPrefix) || (l.endDate || '').startsWith(monthPrefix);
+        });
+        let totalDays = 0;
+        matched.forEach(l => {
+            const s = new Date(l.startDate);
+            const e = new Date(l.endDate);
+            if (isNaN(s.getTime()) || isNaN(e.getTime())) return;
+            const diff = Math.floor((e.getTime() - s.getTime()) / 86400000) + 1;
+            totalDays += diff > 0 ? diff : 1;
+        });
+        return totalDays;
+    }, [leaves, selectedMember, processData.month]);
+
+    const leaveDeduction = useMemo(() => {
+        const daily = (processData.baseSalary || 0) / 30;
+        return Math.round(leaveDaysThisMonth * daily);
+    }, [leaveDaysThisMonth, processData.baseSalary]);
+
     const totalIncome = useMemo(() =>
         processData.baseSalary + processData.mealAllowance + processData.commission + processData.bonus + processData.overtime,
         [processData]);
 
     const totalDeductions = useMemo(() =>
-        processData.damageCost + processData.mistakePenalty + processData.debtRepayment,
-        [processData]);
+        processData.damageCost + processData.mistakePenalty + processData.debtRepayment + leaveDeduction,
+        [processData, leaveDeduction]);
 
     const netPayable = useMemo(() => totalIncome - totalDeductions, [totalIncome, totalDeductions]);
 
@@ -220,6 +249,25 @@ const PayrollManager: React.FC<PayrollManagerProps> = ({ members, payroll, compe
                                     </div>
                                 </div>
 
+                                {/* Leave summary */}
+                                <div className="mb-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-2 h-6 bg-amber-500 rounded-full"></div>
+                                        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">วันหยุดเดือนนี้</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
+                                            <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1">🏖️ วันลาเดือนนี้ (อนุมัติแล้ว)</p>
+                                            <p className="text-2xl font-black text-amber-700">{leaveDaysThisMonth} วัน</p>
+                                        </div>
+                                        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                            <label className="text-[10px] font-black uppercase tracking-widest block text-slate-500">หักวันลา (฿)</label>
+                                            <input type="number" readOnly value={leaveDeduction} className="w-full mt-2 px-4 py-3 bg-white border border-slate-200 rounded-2xl font-black text-slate-900 text-sm cursor-not-allowed" />
+                                            <p className="text-[9px] text-slate-400 mt-1">วันลา × ({(processData.baseSalary || 0).toLocaleString()} / 30)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Deduction Section */}
                                 <div className="mb-8">
                                     <div className="flex items-center gap-3 mb-4">
@@ -232,7 +280,7 @@ const PayrollManager: React.FC<PayrollManagerProps> = ({ members, payroll, compe
                                         {numInput('หักหนี้ (฿)', 'debtRepayment', 'red')}
                                         {numInput('หนี้คงเหลือ (฿)', 'remainingDebt', 'red')}
                                         <div className="bg-red-50 rounded-2xl p-4 border border-red-100 flex flex-col justify-center">
-                                            <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">หักรวม</p>
+                                            <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">หักรวม (รวมหักวันลา)</p>
                                             <p className="text-2xl font-black text-red-600">฿{totalDeductions.toLocaleString()}</p>
                                         </div>
                                     </div>

@@ -21,6 +21,7 @@ interface TaskFilters {
 
 const STORAGE_TASKS_KEY = 'admin_dashboard_tasks_v1';
 const STORAGE_COMMENTS_KEY = 'admin_dashboard_task_comments_v1';
+const STORAGE_VIEW_MODE_KEY = 'admin_dashboard_task_view_mode_v1';
 
 const STATUS_ORDER: TaskStatus[] = ['backlog', 'todo', 'in_progress', 'review', 'done'];
 const PRIORITY_ORDER: TaskPriority[] = ['low', 'medium', 'high', 'urgent'];
@@ -77,7 +78,11 @@ const COPY = {
     formTitle: 'สร้างงานใหม่',
     tagHint: 'คั่นด้วย comma',
     clear: 'ล้างตัวกรอง',
-    open: 'เปิดรายละเอียด'
+    open: 'เปิดรายละเอียด',
+    quickCapture: 'สั่งงานด่วน',
+    orderedBy: 'สั่งโดย',
+    orderedAt: 'วันที่สั่ง',
+    createNow: 'สั่งทันที'
   },
   EN: {
     title: 'Tasks',
@@ -130,7 +135,11 @@ const COPY = {
     formTitle: 'Create task',
     tagHint: 'Separate with commas',
     clear: 'Clear filters',
-    open: 'Open detail'
+    open: 'Open detail',
+    quickCapture: 'Quick capture',
+    orderedBy: 'Ordered by',
+    orderedAt: 'Ordered at',
+    createNow: 'Create now'
   }
 };
 
@@ -215,7 +224,13 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
   const t = COPY[lang];
   const [tasks, setTasks] = useState<Task[]>([]);
   const [comments, setComments] = useState<TaskComment[]>([]);
-  const [viewMode, setViewMode] = useState<ViewMode>('board');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_VIEW_MODE_KEY);
+      if (saved === 'board' || saved === 'table' || saved === 'list') return saved;
+    } catch (_) {}
+    return 'table';
+  });
   const [filters, setFilters] = useState<TaskFilters>(defaultFilters);
   const [sortMode, setSortMode] = useState<SortMode>('due');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -223,6 +238,9 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
   const [showCreate, setShowCreate] = useState(false);
   const [newTask, setNewTask] = useState<Task>(() => createEmptyTask(currentUser));
   const [newTaskTags, setNewTaskTags] = useState('');
+  const [quickTaskTitle, setQuickTaskTitle] = useState('');
+  const [quickTaskPriority, setQuickTaskPriority] = useState<TaskPriority>('medium');
+  const [quickTaskDueDate, setQuickTaskDueDate] = useState('');
   const [commentDraft, setCommentDraft] = useState('');
   const [subtaskDraft, setSubtaskDraft] = useState('');
   const [loading, setLoading] = useState(true);
@@ -320,6 +338,12 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
     localStorage.setItem(STORAGE_COMMENTS_KEY, JSON.stringify(comments));
   }, [comments]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_VIEW_MODE_KEY, viewMode);
+    } catch (_) {}
+  }, [viewMode]);
+
   const getUserName = (userId?: string) => {
     if (!userId) return t.unassigned;
     return usersById.get(userId)?.name || t.unassigned;
@@ -357,6 +381,31 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
     setNewTask(createEmptyTask(currentUser));
     setNewTaskTags('');
     setShowCreate(false);
+  };
+
+  const handleQuickCreate = () => {
+    const timestamp = nowIso();
+    const task: Task = {
+      id: crypto.randomUUID(),
+      title: quickTaskTitle.trim() || (lang === Language.TH ? 'งานใหม่' : 'Untitled task'),
+      description: '',
+      status: 'todo',
+      priority: quickTaskPriority,
+      assigneeId: currentUser.id,
+      dueDate: quickTaskDueDate || undefined,
+      tags: [],
+      subtasks: [],
+      createdBy: currentUser.id,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+
+    setTasks(prev => [task, ...prev]);
+    void upsertTask(task);
+    setSelectedTaskId(task.id);
+    setQuickTaskTitle('');
+    setQuickTaskPriority('medium');
+    setQuickTaskDueDate('');
   };
 
   const handleDeleteTask = (taskId: string) => {
@@ -527,6 +576,9 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
               {taskComments.length}
             </span>
           </div>
+          <div className="text-[10px] font-bold text-slate-400 pt-2 border-t border-slate-100">
+            {t.createdBy}: <span className="text-slate-600">{getUserName(task.createdBy)}</span> · {formatDateTime(task.createdAt)}
+          </div>
         </div>
       </button>
     );
@@ -630,6 +682,14 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
           placeholder={t.tagHint}
           className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-400"
         />
+        <div className="flex flex-col gap-1 col-span-1 lg:col-span-2">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.createdBy} / วันที่สั่ง</span>
+          <input
+            readOnly
+            value={`${getUserName(currentUser.id)} · ${new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date())}`}
+            className="bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-600 cursor-not-allowed"
+          />
+        </div>
       </div>
       <textarea
         value={newTask.description}
@@ -685,7 +745,7 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
         <table className="w-full min-w-[900px]">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              {[t.titleField, t.status, t.priority, t.assignee, t.dueDate, t.tags, t.subtasks, t.comments].map(header => (
+              {[t.titleField, t.status, t.priority, t.assignee, t.createdBy, t.dueDate, t.tags, t.subtasks, t.comments].map(header => (
                 <th key={header} className="px-4 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                   {header}
                 </th>
@@ -712,6 +772,10 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
                   </span>
                 </td>
                 <td className="px-4 py-4 text-sm font-bold text-slate-600">{getUserName(task.assigneeId)}</td>
+                <td className="px-4 py-4 text-xs font-bold text-slate-500">
+                  <div>{getUserName(task.createdBy)}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">{formatDate(task.createdAt)}</div>
+                </td>
                 <td className={`px-4 py-4 text-sm font-bold ${isOverdue(task) ? 'text-red-600' : 'text-slate-600'}`}>{formatDate(task.dueDate)}</td>
                 <td className="px-4 py-4">
                   <div className="flex flex-wrap gap-1">
@@ -751,6 +815,7 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
               <span className={isOverdue(task) ? 'text-red-600' : ''}>{t.dueDate}: {formatDate(task.dueDate)}</span>
               <span>{t.subtasks}: {task.subtasks.filter(subtask => subtask.completed).length}/{task.subtasks.length}</span>
               <span>{t.comments}: {comments.filter(comment => comment.taskId === task.id).length}</span>
+              <span className="col-span-2 lg:col-span-4 text-[11px] text-slate-400">{t.createdBy}: {getUserName(task.createdBy)} · {formatDate(task.createdAt)}</span>
             </div>
           </div>
         </button>
@@ -939,6 +1004,48 @@ const Tasks: React.FC<TasksProps> = ({ users, currentUser, lang }) => {
             <Icon path="M12 4v16m8-8H4" />
             {t.newTask}
           </button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+        <div className="flex flex-col lg:flex-row gap-3 lg:items-end">
+          <label className="flex-1 flex flex-col gap-1">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.titleField}</span>
+            <input
+              value={quickTaskTitle}
+              onChange={event => setQuickTaskTitle(event.target.value)}
+              placeholder={t.titleField}
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+            />
+          </label>
+          <label className="flex flex-col gap-1 min-w-[180px]">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.priority}</span>
+            <select
+              value={quickTaskPriority}
+              onChange={event => setQuickTaskPriority(event.target.value as TaskPriority)}
+              className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+            >
+              {PRIORITY_ORDER.map(priority => <option key={priority} value={priority}>{t[priority]}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 min-w-[180px]">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t.dueDate}</span>
+            <input
+              type="date"
+              value={quickTaskDueDate}
+              onChange={event => setQuickTaskDueDate(event.target.value)}
+              className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+            />
+          </label>
+          <button
+            onClick={handleQuickCreate}
+            className="px-5 py-3 rounded-2xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-slate-900/20"
+          >
+            {t.createNow}
+          </button>
+        </div>
+        <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+          {t.orderedBy}: {getUserName(currentUser.id)} · {t.orderedAt}: {formatDateTime(nowIso())}
         </div>
       </div>
 
