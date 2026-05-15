@@ -65,31 +65,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, lang, 
       icon: <Icon path="M9 5h6M9 3h6a2 2 0 012 2v1h1.5A1.5 1.5 0 0120 7.5v12A1.5 1.5 0 0118.5 21h-13A1.5 1.5 0 014 19.5v-12A1.5 1.5 0 015.5 6H7V5a2 2 0 012-2zm-2 9l2 2 4-4m-6 5h8" />
     },
     {
-      id: 'finance',
-      label: lang === Language.TH ? 'การเงิน' : 'Finance',
-      icon: <Icon path="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.407 2.67 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.407-2.67-1M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
-    },
-    {
-      id: 'cashbook',
-      label: lang === Language.TH ? 'รายรับรายจ่าย' : 'Cashbook',
-      icon: <Icon path="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-    },
-    {
-      id: 'linebc',
-      label: lang === Language.TH ? 'LINE บอร์ดแคส' : 'LINE Broadcast',
-      icon: <Icon path="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-    },
-    {
-      id: 'accounts',
-      label: lang === Language.TH ? 'Accounts' : 'Accounts',
-      icon: <Icon path="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-    },
-    {
-      id: 'brain',
-      label: lang === Language.TH ? 'Brain Dump' : 'Brain Dump',
-      icon: <Icon path="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-    },
-    {
       id: 'admin',
       label: lang === Language.TH ? 'คอนโซล' : 'Console',
       icon: <Icon path="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -125,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, lang, 
   return (
     <>
       <aside className="hidden lg:flex flex-col w-72 bg-white/80 backdrop-blur-xl border-r border-slate-200 h-screen sticky top-0 overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-10">
+        <div className="p-10">
           <div className="flex items-center space-x-4 mb-14">
             <div className="bg-indigo-600 p-2.5 rounded-2xl shadow-xl shadow-indigo-600/20 rotate-3">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, lang, 
           </div>
         </div>
 
-        <div className="flex-shrink-0 p-8 border-t border-slate-50">
+        <div className="mt-auto p-8 border-t border-slate-50">
           <div className="flex items-center space-x-4 p-4 bg-white rounded-2xl shadow-sm border border-slate-100">
             <div className="relative">
               <img src={user.avatar} alt="" className="w-10 h-10 rounded-xl object-cover border-2 border-slate-50" />

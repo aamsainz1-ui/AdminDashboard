@@ -264,12 +264,7 @@ export type PermissionKey =
   | 'permissions'
   | 'teams'
   | 'tasks'
-  | 'penalty'
-  | 'finance'
-  | 'cashbook'
-  | 'linebc'
-  | 'accounts'
-  | 'brain';
+  | 'penalty';
 
 export interface Permission {
   key: PermissionKey;

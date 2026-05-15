@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const SUPABASE_URL = 'https://uipcifmovofxbrrqnmrn.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpcGNpZm1vdm9meGJycnFubXJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjIwMTIsImV4cCI6MjA4OTM5ODAxMn0.uhi2znO4CQGIYv4zXKRsHgJyDfw-iGpc01-7SsYzmq8';
+const SUPABASE_URL = 'https://kmloseczqatswwczqajs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttbG9zZWN6cWF0c3d3Y3pxYWpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NjQyMzAsImV4cCI6MjA3NzM0MDIzMH0.tc3oZrRBDhbQXfwerLPjTbsNMDwSP0gHhhmd96bPd9I';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
